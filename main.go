@@ -22,8 +22,8 @@ func main() {
 	mux.HandleFunc("/posts", handlers.ViewPostHandler)
 	mux.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("assets"))))
 
-	fmt.Println("Server is running on http://localhost:8000/...")
-	err := http.ListenAndServe(":8000", mux)
+	fmt.Println("Server is running on http://localhost:8080/...")
+	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		log.Fatal(err)
 	}
