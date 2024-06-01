@@ -1,0 +1,16 @@
+{{define "title"}}
+Sign Up
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<main class="container">
+  <div class="bg-body-tertiary p-5 rounded error">
+    <h1>Registration Successful!</h1>
+    <p class="lead">Congratulations, your registration was successful!<br>You can now go to the authorization page.</p>
+    <a class="btn btn-lg btn-primary" href="/auth" role="button">Sign In &raquo;</a>
+  </div>
+</main>
+{{end}}

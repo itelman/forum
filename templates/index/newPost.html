@@ -1,0 +1,35 @@
+{{define "title"}}
+New Post
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<form action="/posts/new" method="POST">
+  <div class="bg-body-tertiary p-5 rounded">
+    <h1 style="text-align:center;">New Post</h1>
+
+    <div class="post-content">
+      <label for="title">Title: </label><br>
+      <input type="text" class="form-control" id="title" name="title" size="110" required>
+
+      <label for="categories">Categories:</label>
+      <fieldset id="categories">
+        {{range .}}
+        <input type="checkbox" class="checkbox" id="{{.ID}}" name="category" value="{{.ID}}">
+        <label for="{{.ID}}" class="count">{{.Name}}</label>
+        {{ end }}
+      </fieldset>
+
+      <label for="content">Content: </label><br>
+      <textarea id="content" class="form-control" name="content" rows="15" cols="110" wrap="off" required></textarea>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn btn-lg btn-primary" type="submit">Add Post
+        &raquo;</button>
+    </div>
+  </div>
+</form>
+{{end}}

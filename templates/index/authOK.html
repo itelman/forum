@@ -1,0 +1,15 @@
+{{define "title"}}
+Sign In
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<div class="bg-body-tertiary p-5 rounded error">
+  <h1>Authorization Successful!</h1>
+  <p class="lead">Congratulations, your authorization was successful!<br>Click the button below to view your profile.
+  </p>
+  <a class="btn btn-lg btn-primary" href="/profile" role="button">Home &raquo;</a>
+</div>
+{{end}}

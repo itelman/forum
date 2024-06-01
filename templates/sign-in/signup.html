@@ -1,0 +1,43 @@
+{{define "title"}}
+Sign Up
+{{end}}
+
+{{define "content"}}
+{{if .}}
+<div class="bg-body-tertiary p-5 rounded">
+  <p class="lead">{{.}}</p>
+</div>
+{{end}}
+
+<h1 class="h3 mb-3 fw-normal">Sign Up</h1>
+
+<div class="bg-body-tertiary p-5 rounded">
+  <ul class="lead">
+    <li>You cannot create more than one account with the same email and/or username.</li>
+    <li>Your username and password should only have a length of 6-10 characters, and only include characters: [a-z],
+      [A-Z], [.], [-], [_].</li>
+  </ul>
+</div>
+
+<div class="form-signin w-100 m-auto">
+  <form action="/signup" method="POST">
+    <div class="form-floating">
+      <input type="email" class="form-control" id="floatingEmail" name="email" placeholder="name@example.com" required>
+      <label for="floatingEmail">Email address</label>
+    </div>
+    <div class="form-floating">
+      <input type="text" class="form-control" id="floatingUsername" name="username" placeholder="username"
+        pattern="[a-zA-Z0-9.-_]{6,10}" required>
+      <label for="floatingUsername">Username</label>
+    </div>
+    <div class="form-floating">
+      <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password"
+        pattern="[a-zA-Z0-9.-_]{6,10}" required>
+      <label for="floatingPassword">Password</label>
+    </div>
+
+    <button class="btn btn-primary w-100 py-2" type="submit">Register</button>
+  </form>
+  <a class="btn btn-primary w-100 py-2" href="/" role="button">Home</a>
+</div>
+{{end}}

@@ -1,0 +1,80 @@
+{{define "title"}}
+Home
+{{end}}
+
+{{define "filters"}}
+<div class="filters">
+  <h1>Filters:</h1>
+
+  <form action="/results">
+    <div class="categories">
+      <label for="categories">Categories:</label>
+      {{range .Categories}}
+      <input type="checkbox" class="checkbox" id="{{.ID}}" name="category" value="{{.ID}}">
+      <label for="{{.ID}}" class="count">{{.Name}}</label>
+      {{ end }}
+    </div>
+
+    <div class="post-types">
+      <input type="checkbox" class="checkbox" id="created" name="created" value="1">
+      <label for="created" class="count">created posts</label>
+
+      <input type="checkbox" class="checkbox" id="liked" name="liked" value="1">
+      <label for="liked" class="count">liked posts</label>
+    </div>
+
+    <button class="btn btn-lg btn-primary small" type="submit">Search
+      &raquo;</button>
+  </form>
+</div>
+{{end}}
+
+{{define "content"}}
+{{if .Posts}}
+{{range .Posts}}
+<div class="bg-body-tertiary p-5 rounded post">
+  <h1>{{.Title}}</h1>
+
+  <div id="prof_pic">
+    <img src="assets/no_pfp.png" alt="Default profile picture" class="in-post">
+  </div>
+
+  <div class="post-content">
+    <label>User:</label>
+    <a href="/profile?id={{.UserID}}">{{.Username}}</a><br>
+    <label>Posted:</label>
+    {{.PostedTime}}<br>
+    <label>Categories:</label>
+    {{range .Categories}}
+    <button class="btn btn-sm btn-outline-secondary">{{.Name}}</button>
+    {{end}}
+
+    <fieldset class="post">{{.Content}}</fieldset>
+
+    {{if (eq .UserReaction 1)}}
+    <button class="btn btn-sm btn-outline-secondary like">Like</button>
+    {{else}}
+    <button class="btn btn-sm btn-outline-secondary">Like</button>
+    {{end}}
+    <label class="count">{{.Likes}}</label>
+
+    {{if (eq .UserReaction 2)}}
+    <button class="btn btn-sm btn-outline-secondary dislike">Dislike</button>
+    {{else}}
+    <button class="btn btn-sm btn-outline-secondary">Dislike</button>
+    {{end}}
+    <label class="count">{{.Dislikes}}</label>
+  </div>
+
+  <a class="btn btn-lg btn-primary" href="/posts?id={{.ID}}" role="button">View &raquo;</a>
+</div>
+{{end}}
+{{else}}
+<div class="bg-body-tertiary p-5 rounded error">
+  <h1>No Posts Added Yet</h1>
+  <p class="lead">You can be the first to add a post!</p>
+  <a class="btn btn-lg btn-primary" href="/posts/new" role="button">Add Post
+    &raquo;</a>
+</div>
+{{end}}
+{{end}}

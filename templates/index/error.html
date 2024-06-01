@@ -1,0 +1,14 @@
+{{define "title"}}
+Error {{.Code}}
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<div class="bg-body-tertiary p-5 rounded error">
+  <h1>{{.Code}} {{.Name}}</h1>
+  <p class="lead">{{.Content}}</p>
+  <a class="btn btn-lg btn-primary" href="/" role="button">Home &raquo;</a>
+</div>
+{{end}}

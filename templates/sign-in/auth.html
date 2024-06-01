@@ -1,0 +1,29 @@
+{{define "title"}}
+Sign In
+{{end}}
+
+{{define "content"}}
+{{if .}}
+<div class="bg-body-tertiary p-5 rounded">
+  <p class="lead">{{.}}</p>
+</div>
+{{end}}
+
+<h1 class="h3 mb-3 fw-normal">Sign In</h1>
+
+<div class="form-signin w-100 m-auto">
+  <form action="/auth" method="POST">
+    <div class="form-floating">
+      <input type="text" class="form-control" id="floatingUsername" name="username" placeholder="username" required>
+      <label for="floatingUsername">Username</label>
+    </div>
+    <div class="form-floating">
+      <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+      <label for="floatingPassword">Password</label>
+    </div>
+
+    <button class="btn btn-primary w-100 py-2" type="submit">Sign In</button>
+  </form>
+  <a class="btn btn-primary w-100 py-2" href="/" role="button">Home</a>
+</div>
+{{end}}

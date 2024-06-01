@@ -1,0 +1,31 @@
+{{define "title"}}
+Profile
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<div class="bg-body-tertiary p-5 rounded">
+  <h1 style="text-align:center;margin-bottom:1.5rem;">Profile</h1>
+
+  <div style="margin-bottom:1rem;">
+    <img src="assets/no_pfp.png" alt="Default profile picture" class="in-profile">
+  </div>
+
+  <div class="post-content" style="text-align:center;margin-bottom:.5rem;">
+    <label>Username:</label>
+    {{.Username}}<br>
+    <label>Email:</label>
+    {{.Email}}<br>
+    <label>Created:</label>
+    {{.CreatedTime}}
+  </div>
+
+  <div style="text-align:center;">
+    <a class="btn btn-lg btn-primary" style="margin-right:.5rem;" href="/change-email" role="button">Change Email
+      &raquo;</a>
+    <a class="btn btn-lg btn-primary" href="/change-password" role="button">Change Password &raquo;</a>
+  </div>
+</div>
+{{end}}

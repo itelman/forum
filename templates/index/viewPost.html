@@ -1,0 +1,97 @@
+{{define "title"}}
+"{{.Title}}" - Post
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<div id="post" class="bg-body-tertiary p-5 rounded post">
+  <h1 style="margin-bottom:1.5rem;">{{.Title}}</h1>
+
+  <div id="prof_pic">
+    <img src="assets/no_pfp.png" alt="Default profile picture" class="in-post">
+  </div>
+
+  <div class="post-content">
+    <label>User:</label>
+    <a href="/profile?id={{.UserID}}">{{.Username}}</a><br>
+    <label>Posted:</label>
+    {{.PostedTime}}<br>
+    <label>Categories:</label>
+    {{range .Categories}}
+    <button class="btn btn-sm btn-outline-secondary">{{.Name}}</button>
+    {{end}}
+
+    <fieldset class="post">{{.Content}}</fieldset>
+
+    <form action="/posts?id={{.ID}}" method="POST">
+      {{if (eq .UserReaction 1)}}
+      <button type="submit" class="btn btn-sm btn-outline-secondary like" name="postReaction" value="-1">Like</button>
+      {{else}}
+      <button type="submit" class="btn btn-sm btn-outline-secondary" name="postReaction" value="1">Like</button>
+      {{end}}
+      <label class="count">{{.Likes}}</label>
+
+      {{if (eq .UserReaction 2)}}
+      <button type="submit" class="btn btn-sm btn-outline-secondary dislike" name="postReaction"
+        value="-2">Dislike</button>
+      {{else}}
+      <button type="submit" class="btn btn-sm btn-outline-secondary" name="postReaction" value="2">Dislike</button>
+      {{end}}
+      <label class="count">{{.Dislikes}}</label>
+    </form>
+  </div>
+</div>
+
+<div id="comments-title" style="margin-bottom:1.5rem;text-align:center;">
+  <h1>Comments (sorted by newest)</h1>
+</div>
+
+<div id="new-comment" class="bg-body-tertiary p-5 rounded new-comment">
+  <form action="/posts?id={{.ID}}" method="POST">
+    <label for="comment">Add a Comment</label><br>
+
+    <div class="comment-content">
+      <textarea id="comment" class="form-control" name="comment" rows="5" cols="110" wrap="off" required></textarea>
+    </div>
+
+    <button class="btn btn-lg btn-primary" type="submit">Add &raquo;</button>
+  </form>
+</div>
+
+{{$post := .}}
+{{range $comment := .Comments}}
+<div id="comment" class="bg-body-tertiary p-5 rounded comment">
+  <div id="prof_pic" style="margin-bottom:1rem;">
+    <img src="assets/no_pfp.png" alt="Default profile picture" class="in-comment">
+  </div>
+
+  <label>User:</label>
+  <a href="/profile?id={{$comment.UserID}}">{{$comment.Username}}</a><br>
+  <label>Posted:</label>
+  {{$comment.PostedTime}}
+
+  <fieldset class="comment">{{$comment.Content}}</fieldset>
+
+  <form action="/posts?id={{$post.ID}}" method="POST">
+    <input type="hidden" name="comment_id" value="{{$comment.ID}}">
+
+    {{if (eq $comment.UserReaction 1)}}
+    <button type="submit" class="btn btn-sm btn-outline-secondary like" name="commentReaction" value="-1">Like</button>
+    {{else}}
+    <button type="submit" class="btn btn-sm btn-outline-secondary" name="commentReaction" value="1">Like</button>
+    {{end}}
+    <label class="count">{{$comment.Likes}}</label>
+
+    {{if (eq $comment.UserReaction 2)}}
+    <button type="submit" class="btn btn-sm btn-outline-secondary dislike" name="commentReaction"
+      value="-2">Dislike</button>
+    {{else}}
+    <button type="submit" class="btn btn-sm btn-outline-secondary" name="commentReaction" value="2">Dislike</button>
+    {{end}}
+    <label class="count">{{$comment.Dislikes}}</label>
+  </form>
+</div>
+{{end}}
+{{end}}

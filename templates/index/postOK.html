@@ -1,0 +1,16 @@
+{{define "title"}}
+New Post
+{{end}}
+
+{{block "filters" .}}
+{{end}}
+
+{{define "content"}}
+<div class="bg-body-tertiary p-5 rounded error">
+  <h1>Congrats, you've added a post!</h1>
+  <p class="lead">You can now view it by clicking the button below.</p>
+
+  <a class="btn btn-lg btn-primary" href="/posts?id={{.}}" role="button">View
+    &raquo;</a>
+</div>
+{{end}}
