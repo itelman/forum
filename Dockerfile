@@ -4,8 +4,6 @@ LABEL maintainer="itelman"
 WORKDIR /
 COPY . .
 
-RUN go get ./... 
-
 # Download Go modules
 RUN go mod download
 
