@@ -11,6 +11,13 @@ RUN go mod download
 # https://docs.docker.com/reference/dockerfile/#copy
 COPY . .
 
+FROM ubuntu
+# ...
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && \
+    apt-get -y install gcc mono-mcs && \
+    rm -rf /var/lib/apt/lists/*
+
 # Build
 RUN CGO_ENABLED=1 GOOS=linux go build -o forum
 EXPOSE 8080
