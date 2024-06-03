@@ -12,6 +12,6 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o forum
+RUN CGO_ENABLED=1 GOOS=linux go build -o forum
 EXPOSE 8080
 CMD ["./forum"]
