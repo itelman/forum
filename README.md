@@ -69,23 +69,6 @@ Note that the last two are only available for registered users and must refer to
 
 For the forum project you must use Docker. You can read about docker basics in the [ascii-art-web-dockerize](../ascii-art-web/dockerize/README.md) subject.
 
-### Instructions
-
-- You must use **SQLite**.
-- You must handle website errors, HTTP status.
-- You must handle all sort of technical errors.
-- The code must respect the [**good practices**](../good-practices/README.md).
-- It is recommended to have **test files** for [unit testing](https://go.dev/doc/tutorial/add-a-test).
-
-### Allowed packages
-
-- All [standard Go](https://golang.org/pkg/) packages are allowed.
-- [sqlite3](https://github.com/mattn/go-sqlite3)
-- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt)
-- [UUID](https://github.com/gofrs/uuid)
-
-> You must not use use any frontend libraries or frameworks like React, Angular, Vue etc.
-
 This project will help you learn about:
 
 - The basics of web :
@@ -99,3 +82,21 @@ This project will help you learn about:
 - SQL language
   - Manipulation of databases
 - The basics of encryption
+
+## Usage: how to run
+
+- You can view the app at:
+https://forum-yl6t.onrender.com
+
+Or
+
+- Download the repository to your local machine.
+- Open the repository via Terminal.
+- Run the following command:
+```console
+go run main.go
+```
+- Run the server on:
+```console
+http://localhost:8080/
+```
