@@ -66,6 +66,7 @@
     <h3 class="comment-posted-username">Author: {{.Username}}</h3>
     <p class="comment-posted-text">{{.Content}}</p>
     <div class="comment-posted-metadata">
+        {{if $td.AuthenticatedUser}}
         <a class="reaction like" href="#" onclick="handleReaction('{{$td.AuthenticatedUser.ID}}', 'like', '{{.ID}}')">
             <img src="/static/img/like-svgrepo-com(1).svg" alt="Like">
         </a>
@@ -75,6 +76,7 @@
             <img src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
         </a>
         <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+        {{end}}
 
         <br>
         <time class="comment-posted-time">Создано: {{humanDate .Created}}</time>
