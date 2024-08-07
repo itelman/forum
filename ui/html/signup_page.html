@@ -1,0 +1,50 @@
+{{template "base" .}}
+
+{{define "title"}}Продолжить{{end}}
+
+{{define "body"}}
+<div class="signup-page-attention">
+    <ul>
+        <li>You cannot create more than one account with the same email.</li>
+        <li>Your password should include at least 10 characters.</li>
+    </ul>
+</div>
+
+<form action="/user/signup" method="POST" novalidate>
+    <!-- Include the CSRF token -->
+    <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
+    {{with .Form}}
+    <div>
+        <label>Имя пользователя:</label>
+        {{with .Errors.Get "name"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <input type="text" name="name" value='{{.Get "name"}}'>
+    </div>
+    <div>
+        <label>Номер телефона:</label>
+        {{with .Errors.Get "phone"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <input type="text" name="phone" value='{{.Get "phone"}}'>
+    </div>
+    <div>
+        <label>Email:</label>
+        {{with .Errors.Get "email"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <input type="text" name="email" value='{{.Get "email"}}'>
+    </div>
+    <div>
+        <label>Пароль:</label>
+        {{with .Errors.Get "password"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <input type="password" name="password">
+    </div>
+    <div class="">
+        <input type="submit" value="Продолжить">
+    </div>
+    {{end}}
+</form>
+{{end}}

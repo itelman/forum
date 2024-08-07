@@ -1,0 +1,99 @@
+{{template "base" .}}
+{{define "title"}}Главная страница{{end}}
+{{define "body"}}
+<h2>Последние новости</h2>
+
+<form action="/results">
+    <div class="category">
+        <fieldset class="categories-fieldset">
+            <legend>Filters:</legend>
+
+            {{range .Categories}}
+            <div class="categories-conatiner-inner">
+                <input type="checkbox" id="{{.ID}}" name="categories" value="{{.ID}}">
+                <label for="{{.ID}}">{{.Name}}</label>
+            </div>
+            {{end}}
+
+            {{if .AuthenticatedUser}}
+            <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
+            <div class="categories-posts">
+                <div>
+                    <input type="checkbox" id="created" name="created" value="1">
+                    <label for="created">created posts</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="liked" name="liked" value="1">
+                    <label for="liked">liked posts</label>
+                </div>
+            </div>
+            {{end}}
+            <div class="signup-page-form-submit">
+                <input type="submit" value="Search">
+            </div>
+        </fieldset>
+    </div>
+</form>
+
+{{if .Snippets}}
+<table id="snippet-table">
+    <tr>
+        <th>Название</th>
+        <th>User</th>
+        <th>Создано</th>
+        <th>Номер</th>
+    </tr>
+    {{range .Snippets}}
+    <tr class="snippet-tr" >
+        <td><a href='/sneep?id={{.ID}}'>{{.Title}}</a></td>
+        <td>{{.Username}}</td>
+        <td>{{humanDate .Created}}</td>
+        <td>{{.ID}}</td>
+    </tr>
+    {{end}}
+</table>
+<!-- <div class="pagination">
+    <a href="#">&laquo;</a>
+    <a href="#">1</a>
+    <a class="active" href="#">2</a>
+    <a href="#">3</a>
+    <a href="#">4</a>
+    <a href="#">5</a>
+    <a href="#">6</a>
+    <a href="#">&raquo;</a>
+</div> -->
+{{else}}
+<p>Тут ничего пока нет!</p>
+{{end}}
+
+<!-- <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rows = document.querySelectorAll(".snippet-tr");
+    const maxVisibleRows = 10;
+    let loadedRows = 0;
+
+    // Function to load more rows
+    function loadMoreRows() {
+        for (let i = loadedRows; i < loadedRows + maxVisibleRows && i < rows.length; i++) {
+            rows[i].style.display = "";
+        }
+        loadedRows += maxVisibleRows;
+    }
+
+    // Initially load the first set of rows
+    loadMoreRows();
+
+    // Infinite scroll functionality
+    window.addEventListener("scroll", () => {
+        const scrollTop = window.scrollY || window.pageYOffset;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // Load more rows when scrolled to the bottom
+        if (scrollTop + windowHeight >= documentHeight - 10) {
+            loadMoreRows();
+        }
+    });
+});
+</script> -->
+{{end}}

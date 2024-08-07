@@ -1,0 +1,125 @@
+{{template "base" .}}
+
+{{define "title"}}Пост #{{.Snippet.ID}}{{end}}
+
+{{define "body"}}
+{{$td := .}}
+{{with .Snippet}}
+<div class="snippet">
+    <div class="metadata">
+        <strong>{{.Title}}</strong>
+        <span>{{.ID}}</span>
+        <p>Author: {{.Username}}</p>
+        <p>Categories: {{range $td.PCRelations}}[{{.}}] {{end}}</p>
+    </div>
+    <pre><code>{{.Content}}</code></pre>
+    <div class="metadata">
+        <div class="reaction-container">
+            {{if $td.AuthenticatedUser}}
+            <a class="reaction like" href="#" onclick="handleReaction('{{$td.AuthenticatedUser.ID}}', 'like',  '{{.ID}}')">
+                <img src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+                <span id="like-count-{{.ID}}">{{.Likes}}</span>
+            </a>
+            {{else}}
+            <img src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+            <span id="like-count-{{.ID}}">{{.Likes}}</span>
+            {{end}}
+            {{if $td.AuthenticatedUser}}
+            <a class="reaction dislike" href="#" onclick="handleReaction('{{$td.AuthenticatedUser.ID}}', 'dislike',  '{{.ID}}')">
+                <img src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+                <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+            </a>
+            {{else}}
+            <img src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+            <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{if .AuthenticatedUser}}
+<div class="comment">
+    <form action="/sneep/create/comment/" method="post" class="form-comment">
+        <input type="hidden" name="snippet_id" value="{{.Snippet.ID}}">
+        <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
+
+        <div class="form-element-comment">
+            <!-- <input type="button"> -->
+            <textarea name="content" id="comment-text" cols="30" rows="10" class="textarea-comment"></textarea>
+
+            <button class="form-element-button-comments" type="submit">
+                <!-- <input class="hiden"   name="to" id="to" value="comment" /> -->
+                <p class="">Отправить</p>
+            </button>
+        </div>
+
+    </form>
+</div>
+{{else}}
+<p class="comment-info">Please sign in or sign up if you want to leave comments and likes/dislikes!</p>
+{{end}}
+
+{{if .Comments}}
+{{range .Comments}}
+<div class="comment-posted">
+    <h3 class="comment-posted-username">Author: {{.Username}}</h3>
+    <p class="comment-posted-text">{{.Content}}</p>
+    <div class="comment-posted-metadata">
+        <a class="reaction like" href="#" onclick="handleReaction('{{$td.AuthenticatedUser.ID}}', 'like', '{{.ID}}')">
+            <img src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+        </a>
+        <span id="like-count-{{.ID}}">{{.Likes}}</span>
+
+        <a class="reaction dislike" href="#" onclick="handleReaction('{{$td.AuthenticatedUser.ID}}', 'dislike',  '{{.ID}}')">
+            <img src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+        </a>
+        <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+
+        <br>
+        <time class="comment-posted-time">Создано: {{humanDate .Created}}</time>
+    </div>
+</div>
+{{end}}
+{{else}}
+<p>Пока нет никаких комментарий!</p>
+{{end}}
+
+<script>
+    function handleReaction(user_id, reactionType, id) {
+
+        const reactionData = {
+            user_id: user_id,
+            id: id,
+            reactionType: reactionType
+        };
+
+        if (reactionType === 'like') {
+            link = '/like/';
+        } else {
+            link = '/dislike/';
+        }
+
+        fetch(link, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reactionData),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Reaction successfully submitted:', data);
+            })
+            .catch(error => {
+                console.error('Error submitting reaction:', error);
+            });
+    }
+</script>
+
+{{end}}
