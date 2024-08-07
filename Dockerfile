@@ -5,15 +5,14 @@ WORKDIR /
 
 RUN go env -w CGO_ENABLED=1
 
-COPY go.mod go.sum ./
-RUN go mod download
-
 COPY . .
+RUN go mod download
 RUN go build -o forum .
 
 FROM alpine:latest
 WORKDIR /
-COPY --from=base /forum .
 COPY --from=base . .
+
+EXPOSE 8080
 
 CMD ["./forum"]

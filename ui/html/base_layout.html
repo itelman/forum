@@ -23,8 +23,6 @@
             </li>
             <li>{{if .AuthenticatedUser}}
                 <form class="menuItem" action="/user/logout" method="POST">
-                    <!-- Include the CSRF token -->
-                    <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
                     <button>Выйти ({{.AuthenticatedUser.Name}})</button>
                 </form>
                 {{else}}

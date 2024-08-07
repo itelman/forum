@@ -2,8 +2,10 @@ package sqlite
 
 import (
 	"database/sql"
+	"fmt"
 	"forum/pkg/models"
 
+	"github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,19 +19,13 @@ func (m *UserModel) Insert(name, phone, email, password string) error {
 		return err
 	}
 
-	stmt1 := `SELECT id, name, phone, email, created FROM users WHERE email=?`
-	err1 := m.DB.QueryRow(stmt1, email)
-	if err1 == nil {
-		return models.ErrDuplicateEmail
-	}
-
 	stmt := `INSERT INTO users (name, phone, email, hashed_password) VALUES (?, ?, ?, ?)`
 	_, err = m.DB.Exec(stmt, name, phone, email, string(hashedPassword))
 	if err != nil {
-		/*if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
 			fmt.Println(sqliteErr.Code)
 			return models.ErrDuplicateEmail
-		}*/
+		}
 		return err
 	}
 	return nil
