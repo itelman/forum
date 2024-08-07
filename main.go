@@ -21,7 +21,8 @@ func main() {
 
 	srv := check.CreateServer(infoLog, errorLog, cfg)
 
-	infoLog.Printf("Starting server on https://localhost%s", cfg.Addr)
-	err := srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	infoLog.Printf("Starting server on http://localhost%s", cfg.Addr)
+	//err := srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	err := srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
