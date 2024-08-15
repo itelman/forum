@@ -1,0 +1,48 @@
+{{template "base" .}}
+
+{{define "title"}}Создать новый пост{{end}}
+
+{{define "body"}}
+{{$td := .}}
+<form action="/post/create" method="POST">
+    <!-- Include the CSRF token -->
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
+    {{with .Form}}
+    <div>
+        <label>Название:</label>
+        {{with .Errors.Get "title"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <input type="text" name="title" value='{{.Get "title"}}'>
+    </div>
+    <div>
+        <label>Контент:</label>
+        {{with .Errors.Get "content"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <textarea name="content">{{.Get "content"}}</textarea>
+    </div>
+
+    <div>
+        {{with .Errors.Get "categories"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+        <fieldset class="categories-fieldset">
+            <legend>Категории</legend>
+
+            {{range $td.Categories}}
+            <div class="categories-conatiner-inner">
+                <input type="checkbox" id="{{.ID}}" name="categories" value="{{.ID}}">
+                <label for="{{.ID}}">{{.Name}}</label>
+            </div>
+            {{end}}
+        </fieldset>
+    </div>
+
+    <div>
+        <input type="submit" value="Publish post">
+    </div>
+    {{end}}
+</form>
+{{end}}

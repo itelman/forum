@@ -1,0 +1,24 @@
+{{template "base" .}}
+{{define "title"}}Категроии{{end}}
+{{define "body"}}
+{{if .Posts}}
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Создано</th>
+        <th>Номер</th>
+    </tr>
+    {{range .Posts}}
+    <tr>
+        <td><a href='/post?id={{.ID}}'>{{.Title}}</a></td>
+        <!-- Use the new template function here -->
+
+        <td>{{humanDate .Created}}</td>
+        <td>{{.ID}}</td>
+    </tr>
+    {{end}}
+</table>
+{{else}}
+<p>Тут ничего пока нет!</p>
+{{end}}
+{{end}}

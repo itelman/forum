@@ -1,0 +1,58 @@
+{{template "base" .}}
+{{define "title"}}Главная страница{{end}}
+{{define "body"}}
+<h2>Последние новости</h2>
+
+<form action="/results">
+    <div class="category">
+        <fieldset class="categories-fieldset">
+            <legend>Filters:</legend>
+
+            {{range .Categories}}
+            <div class="categories-conatiner-inner">
+                <input type="checkbox" id="{{.ID}}" name="categories" value="{{.ID}}">
+                <label for="{{.ID}}">{{.Name}}</label>
+            </div>
+            {{end}}
+
+            {{if .AuthenticatedUser}}
+            <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
+            <div class="categories-posts">
+                <div>
+                    <input type="checkbox" id="created" name="created" value="1">
+                    <label for="created">created posts</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="liked" name="liked" value="1">
+                    <label for="liked">liked posts</label>
+                </div>
+            </div>
+            {{end}}
+            <div class="signup-page-form-submit">
+                <input type="submit" value="Search">
+            </div>
+        </fieldset>
+    </div>
+</form>
+
+{{if .Posts}}
+<table id="post-table">
+    <tr>
+        <th>Название</th>
+        <th>User</th>
+        <th>Создано</th>
+        <th>Номер</th>
+    </tr>
+    {{range .Posts}}
+    <tr class="post-tr" >
+        <td><a href='/post?id={{.ID}}'>{{.Title}}</a></td>
+        <td>{{.Username}}</td>
+        <td>{{humanDate .Created}}</td>
+        <td>{{.ID}}</td>
+    </tr>
+    {{end}}
+</table>
+{{else}}
+<p>Тут ничего пока нет!</p>
+{{end}}
+{{end}}

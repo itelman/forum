@@ -1,0 +1,138 @@
+{{template "base" .}}
+
+{{define "title"}}Пост #{{.Post.ID}}{{end}}
+
+{{define "body"}}
+{{$td := .}}
+{{with .Post}}
+<div class="post">
+    <div class="metadata">
+        <strong>{{.Title}}</strong>
+        <span>{{.ID}}</span>
+        <p>Author: {{.Username}}</p>
+        <p>Categories: {{range $td.PCRelations}}[{{.}}] {{end}}</p>
+    </div>
+    <pre><code>{{.Content}}</code></pre>
+    <div class="metadata">
+        <div class="reaction-container">
+            {{if $td.AuthenticatedUser}}
+            <form action="/post/reaction" method="POST">
+                <input type="hidden" name="post_id" value="{{.ID}}">
+                <input type="hidden" name="user_id" value="{{$td.AuthenticatedUser.ID}}">
+                <input type="hidden" name="is_like" value="1">
+
+                <button class="reaction like">
+                    <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
+                        data-src-active="/static/img/icons8-facebook-like-48.png" alt="Like">
+                </button>
+            </form>
+            {{else}}
+            <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+            {{end}}
+            <span id="like-count-{{.ID}}">{{.Likes}}</span>
+
+            {{if $td.AuthenticatedUser}}
+            <form action="/post/reaction" method="POST">
+                <input type="hidden" name="post_id" value="{{.ID}}">
+                <input type="hidden" name="user_id" value="{{$td.AuthenticatedUser.ID}}">
+                <input type="hidden" name="is_like" value="0">
+
+                <button class="reaction dislike">
+                    <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
+                        data-src-active="/static/img/dislike.png" alt="Dislike">
+                </button>
+            </form>
+            {{else}}
+            <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+            {{end}}
+            <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{if .AuthenticatedUser}}
+<div class="comment">
+    <form action="/post/comment" method="post" class="form-comment">
+        <input type="hidden" name="post_id" value="{{.Post.ID}}">
+        <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
+
+        <div class="form-element-comment">
+            <textarea name="content" id="comment-text" cols="30" rows="10" class="textarea-comment"></textarea>
+            <button class="form-element-button-comments" type="submit">
+                <p class="">Отправить</p>
+            </button>
+        </div>
+    </form>
+</div>
+{{else}}
+<p class="comment-info">Please sign in or sign up if you want to leave reactions and comments!</p>
+{{end}}
+
+{{if .Comments}}
+{{range .Comments}}
+<div class="comment-posted">
+    <h3 class="comment-posted-username">Author: {{.Username}}</h3>
+    <p class="comment-posted-text">{{.Content}}</p>
+    <div class="comment-posted-metadata">
+        <div class="reaction-container">
+            {{if $td.AuthenticatedUser}}
+            <form action="/comment/reaction" method="POST">
+                <input type="hidden" name="post_id" value="{{$td.Post.ID}}">
+                <input type="hidden" name="comment_id" value="{{.ID}}">
+                <input type="hidden" name="user_id" value="{{$td.AuthenticatedUser.ID}}">
+                <input type="hidden" name="is_like" value="1">
+
+                <button class="reaction like">
+                    <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
+                        data-src-active="/static/img/icons8-facebook-like-48.png" alt="Like">
+                </button>
+            </form>
+            {{else}}
+            <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+            {{end}}
+
+            <span id="like-count-{{.ID}}">{{.Likes}}</span>
+
+            {{if $td.AuthenticatedUser}}
+            <form action="/comment/reaction" method="POST">
+                <input type="hidden" name="post_id" value="{{$td.Post.ID}}">
+                <input type="hidden" name="comment_id" value="{{.ID}}">
+                <input type="hidden" name="user_id" value="{{$td.AuthenticatedUser.ID}}">
+                <input type="hidden" name="is_like" value="0">
+
+                <button class="reaction dislike">
+                    <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
+                        data-src-active="/static/img/dislike.png" alt="Dislike">
+                </button>
+            </form>
+            {{else}}
+            <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+            {{end}}
+
+            <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+        </div>
+        <br>
+
+        <time class="comment-posted-time">Создано: {{humanDate .Created}}</time>
+    </div>
+</div>
+{{end}}
+{{else}}
+<p>No Comments Yet!</p>
+{{end}}
+
+<script>
+    function handleClick(id, liked) {
+        const likeIcon = document.getElementById(`post-like-icon-${id}`);
+        const dislikeIcon = document.getElementById(`post-dislike-icon-${id}`);
+
+        if (liked) {
+            likeIcon.src = likeIcon.dataset.srcActive;
+        } else {
+            likeIcon.src = '/static/img/like-svgrepo-com(1).svg';
+        }
+    }
+</script>
+
+{{end}}
