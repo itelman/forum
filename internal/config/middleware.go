@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"forum/internal/repository/models"
 	"net/http"
+	"time"
 )
 
 func (app *Application) RecoverPanic(next http.Handler) http.Handler {
@@ -38,17 +39,47 @@ func (app *Application) LogRequest(next http.Handler) http.Handler {
 
 func (app *Application) RequireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionID, err := app.GetSessionIDFromRequest(w, r)
+		if err != nil {
+			app.ServerErrorHandler(w, r, err)
+			return
+		}
+
 		if app.AuthenticatedUser(r) == nil {
-			sessionID, err := app.GetSessionIDFromRequest(w, r)
+			app.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again to proceed.")
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+
+		sessionData := app.GetSession(sessionID)
+		lastRequest, exists := sessionData["lastRequest"].(time.Time)
+		if !exists {
+			app.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		if !time.Now().Before(lastRequest.Add(app.CookieLimit)) {
+			app.DeleteSession(sessionID)
+			delete(app.ActiveSessions, sessionData["userID"].(int))
+
+			newSessionID, err := app.CreateNewSession()
 			if err != nil {
 				app.ServerErrorHandler(w, r, err)
 				return
 			}
-			app.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again to proceed.")
 
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session_id",
+				Value: newSessionID,
+				Path:  "/",
+			})
+
+			app.PutSessionData(newSessionID, "flash", "Your session has expired. Please sign in again to proceed.")
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return
 		}
+
+		app.UpdateSessionLastReq(sessionID)
 		next.ServeHTTP(w, r)
 	})
 }

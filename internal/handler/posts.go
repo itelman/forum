@@ -132,7 +132,7 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 		s.ReactedByUser = reacted
 
 		for _, comment := range c {
-			reacted, err := h.App.Comment_reactions.Get(strconv.Itoa(id), strconv.Itoa(loggedUser.ID))
+			reacted, err := h.App.Comment_reactions.Get(strconv.Itoa(comment.ID), strconv.Itoa(loggedUser.ID))
 			if err != nil {
 				h.App.ServerErrorHandler(w, r, err)
 				return

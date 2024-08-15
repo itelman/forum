@@ -2,6 +2,7 @@ package config
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
@@ -33,6 +34,9 @@ func (app *Application) PutSessionData(sessionID string, key string, value inter
 		sessionData = make(map[string]interface{})
 	}
 	sessionData[key] = value
+	if key == "userID" {
+		sessionData["lastRequest"] = time.Now()
+	}
 	app.PutSession(sessionID, sessionData)
 }
 
@@ -156,16 +160,9 @@ func (app *Application) GetSessionUserID(sessionID string) int {
 }
 
 func (app *Application) GetSessionIDByUser(userID int) string {
-	app.SessionMutex.Lock()
-	defer app.SessionMutex.Unlock()
+	return app.ActiveSessions[userID]
+}
 
-	for sessionID, sessionData := range app.SessionStore {
-		for _, storedID := range sessionData {
-			if storedID == userID {
-				return sessionID
-			}
-		}
-	}
-
-	return ""
+func (app *Application) UpdateSessionLastReq(sessionID string) {
+	app.SessionStore[sessionID]["lastRequest"] = time.Now()
 }

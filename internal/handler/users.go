@@ -6,7 +6,6 @@ import (
 	"forum/internal/repository/models"
 	"forum/internal/service/forms"
 	"net/http"
-	"time"
 )
 
 func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
@@ -85,10 +84,6 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldSessionID := h.App.GetSessionIDByUser(id)
-	h.App.DeleteSession(oldSessionID)
-	delete(h.App.ActiveSessions, id)
-
 	sessionID, err := h.App.CreateNewSession(id)
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
@@ -97,10 +92,10 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	h.App.PutSessionData(sessionID, "userID", id)
 
 	http.SetCookie(w, &http.Cookie{
-		Name:   "session_id",
-		Value:  sessionID,
-		Path:   "/",
-		MaxAge: int(time.Duration(15 * time.Minute).Seconds()),
+		Name:  "session_id",
+		Value: sessionID,
+		Path:  "/",
+		// MaxAge: int(time.Duration(h.App.CookieLimit).Seconds()),
 	})
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)

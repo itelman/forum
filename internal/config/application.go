@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"sync"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,6 +25,7 @@ type Config struct {
 type Application struct {
 	ErrorLog       *log.Logger
 	InfoLog        *log.Logger
+	CookieLimit    time.Duration
 	SessionStore   map[string]map[string]interface{}
 	SessionMutex   sync.Mutex
 	ActiveSessions map[int]string
