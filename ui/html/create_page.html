@@ -1,6 +1,6 @@
 {{template "base" .}}
 
-{{define "title"}}Создать новый пост{{end}}
+{{define "title"}}Create a new post{{end}}
 
 {{define "body"}}
 {{$td := .}}
@@ -10,14 +10,14 @@
     <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
     {{with .Form}}
     <div>
-        <label>Название:</label>
+        <label>Title:</label>
         {{with .Errors.Get "title"}}
         <label class="error">{{.}}</label>
         {{end}}
         <input type="text" name="title" value='{{.Get "title"}}'>
     </div>
     <div>
-        <label>Контент:</label>
+        <label>Content:</label>
         {{with .Errors.Get "content"}}
         <label class="error">{{.}}</label>
         {{end}}
@@ -29,7 +29,7 @@
         <label class="error">{{.}}</label>
         {{end}}
         <fieldset class="categories-fieldset">
-            <legend>Категории</legend>
+            <legend>Categories</legend>
 
             {{range $td.Categories}}
             <div class="categories-conatiner-inner">

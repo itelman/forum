@@ -1,6 +1,6 @@
 {{template "base" .}}
 
-{{define "title"}}Войти{{end}}
+{{define "title"}}Sign In{{end}}
 
 {{define "body"}}
 <form action="/user/login" method="POST" novalidate>
@@ -15,7 +15,7 @@
         <input type="email" name="name" value='{{.Get "name"}}'>
     </div>
     <div>
-        <label>Пароль:</label>
+        <label>Password:</label>
         <input type="password" name="password">
     </div>
     <div>

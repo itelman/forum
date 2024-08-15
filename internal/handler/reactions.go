@@ -55,7 +55,7 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/comment/reaction/" {
+	if r.URL.Path != "/comment/reaction" {
 		h.App.NotFoundHandler(w, r)
 		return
 	}

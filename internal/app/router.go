@@ -21,10 +21,10 @@ func Routes(handlers *handler.Handlers) http.Handler {
 		{"/post/create", handlers.CreatePostForm, true},
 		{"/post/comment", handlers.CreateComment, true},
 		{"/post/reaction", handlers.HandlePostReaction, true},
-		{"/comment/reaction/", handlers.HandleCommentReaction, true},
+		{"/comment/reaction", handlers.HandleCommentReaction, true},
 		{"/user/signup", handlers.SignupUserForm, false},
 		{"/user/login", handlers.LoginUserForm, false},
-		{"/user/logout", handlers.LogoutUser, true},
+		{"/user/logout", handlers.LogoutUser, false},
 	}
 
 	for _, route := range routes {

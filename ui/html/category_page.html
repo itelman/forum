@@ -1,12 +1,12 @@
 {{template "base" .}}
-{{define "title"}}Категроии{{end}}
+{{define "title"}}Categories{{end}}
 {{define "body"}}
 {{if .Posts}}
 <table>
     <tr>
-        <th>Название</th>
-        <th>Создано</th>
-        <th>Номер</th>
+        <th>Title</th>
+        <th>Created</th>
+        <th>ID</th>
     </tr>
     {{range .Posts}}
     <tr>
@@ -19,6 +19,6 @@
     {{end}}
 </table>
 {{else}}
-<p>Тут ничего пока нет!</p>
+<p>No Posts Yet!</p>
 {{end}}
 {{end}}

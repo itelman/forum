@@ -6,6 +6,7 @@ import (
 	"forum/internal/repository/models"
 	"forum/internal/service/forms"
 	"net/http"
+	"time"
 )
 
 func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
@@ -83,17 +84,25 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
+
+	oldSessionID := h.App.GetSessionIDByUser(id)
+	h.App.DeleteSession(oldSessionID)
+	delete(h.App.ActiveSessions, id)
+
 	sessionID, err := h.App.CreateNewSession(id)
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 	h.App.PutSessionData(sessionID, "userID", id)
+
 	http.SetCookie(w, &http.Cookie{
-		Name:  "session_id",
-		Value: sessionID,
-		Path:  "/",
+		Name:   "session_id",
+		Value:  sessionID,
+		Path:   "/",
+		MaxAge: int(time.Duration(15 * time.Minute).Seconds()),
 	})
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -128,11 +137,19 @@ func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
+
 	sessionID, err := h.App.GetSessionIDFromRequest(w, r)
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
+
+	if h.App.AuthenticatedUser(r) == nil {
+		h.App.PutSessionData(sessionID, "flash", "You are already logged out.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	userID := h.App.GetSessionUserID(sessionID)
 	h.App.DeleteSession(sessionID)
 	delete(h.App.ActiveSessions, userID)

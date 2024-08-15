@@ -37,6 +37,12 @@ CREATE TABLE IF NOT EXISTS categories (
     created DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO categories (name) SELECT "Music" WHERE NOT EXISTS (SELECT * FROM categories WHERE name = "Music");
+INSERT INTO categories (name) SELECT "Books" WHERE NOT EXISTS (SELECT * FROM categories WHERE name = "Books");
+INSERT INTO categories (name) SELECT "Hobbies" WHERE NOT EXISTS (SELECT * FROM categories WHERE name = "Hobbies");
+INSERT INTO categories (name) SELECT "Games" WHERE NOT EXISTS (SELECT * FROM categories WHERE name = "Games");
+INSERT INTO categories (name) SELECT "Programming" WHERE NOT EXISTS (SELECT * FROM categories WHERE name = "Programming");
+
 CREATE TABLE IF NOT EXISTS post_category (
     post_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,

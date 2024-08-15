@@ -26,7 +26,7 @@ func (f *Form) Required(fields ...string) {
 	for _, field := range fields {
 		value := f.Get(field)
 		if strings.TrimSpace(value) == "" {
-			f.Errors.Add(field, "Это поле не должен быть пустым")
+			f.Errors.Add(field, "This field should not be empty")
 		}
 	}
 }
@@ -37,7 +37,7 @@ func (f *Form) MaxLength(field string, d int) {
 		return
 	}
 	if utf8.RuneCountInString(value) > d {
-		f.Errors.Add(field, fmt.Sprintf("Превышен лимит данных (максимум %d", d))
+		f.Errors.Add(field, fmt.Sprintf("Max length exceeded (max %d", d))
 	}
 }
 
@@ -51,7 +51,7 @@ func (f *Form) PermittedValues(field string, opts ...string) {
 			return
 		}
 	}
-	f.Errors.Add(field, "Введенные данные не соответсвует требованиям")
+	f.Errors.Add(field, "Input does not match the format")
 }
 
 func (f *Form) MinLength(field string, d int) {
@@ -60,7 +60,7 @@ func (f *Form) MinLength(field string, d int) {
 		return
 	}
 	if utf8.RuneCountInString(value) < d {
-		f.Errors.Add(field, fmt.Sprintf("Мало введенных данных (минимум %d)", d))
+		f.Errors.Add(field, fmt.Sprintf("Please provide input with minimum length (min %d)", d))
 	}
 }
 
@@ -71,7 +71,7 @@ func (f *Form) MatchesPattern(field string, pattern *regexp.Regexp) {
 	}
 
 	if !pattern.MatchString(value) {
-		f.Errors.Add(field, "Введенные данные не соответсвует требованиям")
+		f.Errors.Add(field, "Input does not match the format")
 	}
 }
 
@@ -90,6 +90,23 @@ func (f *Form) RequiredAtLeastOne(fields ...string) {
 	}
 
 	if count == len(fields) {
-		f.Errors.Add(fields[0], "Это поле не должен быть пустым")
+		f.Errors.Add(fields[0], "This field should not be empty")
 	}
+}
+
+func (f *Form) ProvidedAtLeastOne(fields ...string) bool {
+	var count int
+
+	for _, field := range fields {
+		value := f.Get(field)
+		if strings.TrimSpace(value) == "" {
+			count++
+		}
+	}
+
+	if count < len(fields) {
+		return true
+	}
+
+	return false
 }

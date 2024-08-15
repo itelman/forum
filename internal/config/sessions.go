@@ -23,6 +23,7 @@ func (app *Application) GetSessionIDFromRequest(w http.ResponseWriter, r *http.R
 		}
 		return "", err
 	}
+
 	return cookie.Value, nil
 }
 
@@ -152,4 +153,19 @@ func (app *Application) GetSessionUserID(sessionID string) int {
 	}
 
 	return userID
+}
+
+func (app *Application) GetSessionIDByUser(userID int) string {
+	app.SessionMutex.Lock()
+	defer app.SessionMutex.Unlock()
+
+	for sessionID, sessionData := range app.SessionStore {
+		for _, storedID := range sessionData {
+			if storedID == userID {
+				return sessionID
+			}
+		}
+	}
+
+	return ""
 }

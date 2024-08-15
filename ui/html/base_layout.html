@@ -19,27 +19,27 @@
     </header>
     <ul class="menu">
         <li>
-            <a class="menuItem" href='/'>Главная страница</a>
+            <a class="menuItem" href='/'>Home</a>
             {{if .AuthenticatedUser}}
-            <a class="menuItem" href="/post/create">Создать пост</a>
+            <a class="menuItem" href="/post/create">Create Post</a>
             {{end}}
         </li>
         <li>{{if .AuthenticatedUser}}
             <form class="menuItem" action="/user/logout" method="POST">
                 <!-- Include the CSRF token -->
                 <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
-                <button>Выйти ({{.AuthenticatedUser.Name}})</button>
+                <button>Log Out ({{.AuthenticatedUser.Name}})</button>
             </form>
             {{else}}
-            <a class="menuItem" href="/user/signup">Регистрация</a>
-            <a class="menuItem" href="/user/login">Войти</a>
+            <a class="menuItem" href="/user/signup">Sign Up</a>
+            <a class="menuItem" href="/user/login">Sign In</a>
             {{end}}
         </li>
     </ul>
     <button class="hamburger">
         <!-- material icons https://material.io/resources/icons/ -->
-        <i class="menuIcon material-icons">меню</i>
-        <i class="closeIcon material-icons">закрыть</i>
+        <i class="menuIcon material-icons">Menu</i>
+        <i class="closeIcon material-icons">Close</i>
     </button>
     <section>
         {{with .Flash}}
