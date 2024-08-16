@@ -1,17 +1,18 @@
-FROM golang:1.20-alpine AS base
+FROM golang:1.20.1-alpine3.16 AS build
+RUN apk --no-cache add ca-certificates git
+WORKDIR /app
 
-RUN apk add build-base 
-WORKDIR /
-
-RUN go env -w CGO_ENABLED=1
+COPY go.mod ./
+RUN go mod download
 
 COPY . .
-RUN go mod download
+RUN apk add build-base
 RUN go build -o forum .
 
 FROM alpine:latest
 WORKDIR /
-COPY --from=base . .
+
+COPY --from=build /app .
 
 EXPOSE 8080
 

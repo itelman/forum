@@ -2,7 +2,7 @@ module forum
 
 go 1.20
 
-require github.com/mattn/go-sqlite3 v1.14.18
+require github.com/mattn/go-sqlite3 v1.14.22
 
 require golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6
 
