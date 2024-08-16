@@ -21,7 +21,7 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
+		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
+		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 

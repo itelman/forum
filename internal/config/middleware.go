@@ -39,10 +39,10 @@ func (app *Application) LogRequest(next http.Handler) http.Handler {
 
 func (app *Application) RequireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app.AuthenticatedUser(r) == nil {
+		/*if app.AuthenticatedUser(r) == nil {
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return
-		}
+		}*/
 
 		next.ServeHTTP(w, r)
 	})

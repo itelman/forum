@@ -40,7 +40,7 @@ func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
+		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	form := forms.New(r.PostForm)
@@ -113,7 +113,7 @@ func (h *Handlers) LoginUserForm(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
+		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
 		return
 	}
 	form := forms.New(r.PostForm)
