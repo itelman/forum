@@ -159,10 +159,6 @@ func (app *Application) GetSessionUserID(sessionID string) int {
 	return userID
 }
 
-func (app *Application) GetSessionIDByUser(userID int) string {
-	return app.ActiveSessions[userID]
-}
-
 func (app *Application) UpdateSessionLastReq(sessionID string) {
 	app.SessionStore[sessionID]["lastRequest"] = time.Now()
 }

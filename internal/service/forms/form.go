@@ -95,17 +95,11 @@ func (f *Form) RequiredAtLeastOne(fields ...string) {
 }
 
 func (f *Form) ProvidedAtLeastOne(fields ...string) bool {
-	var count int
-
 	for _, field := range fields {
 		value := f.Get(field)
-		if strings.TrimSpace(value) == "" {
-			count++
+		if strings.TrimSpace(value) != "" {
+			return true
 		}
-	}
-
-	if count < len(fields) {
-		return true
 	}
 
 	return false

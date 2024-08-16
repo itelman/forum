@@ -50,13 +50,13 @@ func (m *PostCategoryModel) Get(id int) ([]string, error) {
 	return categories, nil
 }
 
-func (m *PostCategoryModel) FilterByCategories(post_id int, categories_id []string, val int) (bool, error) {
-	if val == 0 {
+func (m *PostCategoryModel) FilterByCategories(post_id int, categories_id []string) (bool, error) {
+	if len(categories_id) == 0 {
 		return true, nil
 	}
 
 	placeholders := strings.Repeat("?,", len(categories_id))
-	placeholders = placeholders[:len(placeholders)-1] 
+	placeholders = placeholders[:len(placeholders)-1]
 
 	stmt := fmt.Sprintf("SELECT COUNT(*) FROM post_category WHERE category_id IN (%s) AND post_id = ?", placeholders)
 

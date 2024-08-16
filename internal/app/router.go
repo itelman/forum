@@ -24,7 +24,7 @@ func Routes(handlers *handler.Handlers) http.Handler {
 		{"/comment/reaction", handlers.HandleCommentReaction, true},
 		{"/user/signup", handlers.SignupUserForm, false},
 		{"/user/login", handlers.LoginUserForm, false},
-		{"/user/logout", handlers.LogoutUser, false},
+		{"/user/logout", handlers.LogoutUser, true},
 	}
 
 	for _, route := range routes {

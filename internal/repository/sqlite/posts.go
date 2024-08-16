@@ -11,8 +11,7 @@ type PostModel struct {
 }
 
 func (m *PostModel) Insert(user_id, title, content string) (int, error) {
-	var stmt string
-	stmt = `INSERT INTO posts (user_id, title, content) VALUES(?, ?, ?)`
+	stmt := `INSERT INTO posts (user_id, title, content) VALUES(?, ?, ?)`
 	result, err := m.DB.Exec(stmt, user_id, title, content)
 	if err != nil {
 		return 0, err
@@ -99,8 +98,8 @@ func (m *PostModel) UpdateReactions(id int, Likes func(int) (int, error), Dislik
 	return nil
 }
 
-func (m *PostModel) Filter(form url.Values, FilterByLiked func(int, string, string) (bool, error),
-	FilterByCategories func(int, []string, int) (bool, error)) ([]*models.Post, error) {
+func (m *PostModel) Filter(user_id int, form url.Values, FilterByLiked func(int, int, string) (bool, error),
+	FilterByCategories func(int, []string) (bool, error)) ([]*models.Post, error) {
 	var results []*models.Post
 
 	posts, err := m.Latest()
@@ -109,14 +108,14 @@ func (m *PostModel) Filter(form url.Values, FilterByLiked func(int, string, stri
 	}
 
 	for _, post := range posts {
-		cond_created := m.FilterByCreated(post.UserID, form.Get("user_id"), form.Get("created"))
+		cond_created := m.FilterByCreated(post.UserID, user_id, form.Get("created"))
 
-		cond_liked, err := FilterByLiked(post.ID, form.Get("user_id"), form.Get("liked"))
+		cond_liked, err := FilterByLiked(post.ID, user_id, form.Get("liked"))
 		if err != nil {
 			return nil, err
 		}
 
-		cond_categories, err := FilterByCategories(post.ID, form["categories"], len(form.Get("categories")))
+		cond_categories, err := FilterByCategories(post.ID, form["categories"])
 		if err != nil {
 			return nil, err
 		}
@@ -129,12 +128,12 @@ func (m *PostModel) Filter(form url.Values, FilterByLiked func(int, string, stri
 	return results, nil
 }
 
-func (m *PostModel) FilterByCreated(post_user, user_id, val string) bool {
-	if val != "1" {
+func (m *PostModel) FilterByCreated(post_user_id, user_id int, val string) bool {
+	if len(val) == 0 || user_id == -1 {
 		return true
 	}
 
-	if post_user == user_id {
+	if post_user_id == user_id {
 		return true
 	}
 

@@ -34,7 +34,7 @@ type Application struct {
 		Insert(string, string, string) (int, error)
 		Get(int) (*models.Post, error)
 		Latest() ([]*models.Post, error)
-		Filter(url.Values, func(int, string, string) (bool, error), func(int, []string, int) (bool, error)) ([]*models.Post, error)
+		Filter(int, url.Values, func(int, int, string) (bool, error), func(int, []string) (bool, error)) ([]*models.Post, error)
 		UpdateReactions(int, func(int) (int, error), func(int) (int, error)) error
 	}
 	Users interface {
@@ -53,7 +53,7 @@ type Application struct {
 	Post_category interface {
 		Insert(string, []string) error
 		Get(int) ([]string, error)
-		FilterByCategories(int, []string, int) (bool, error)
+		FilterByCategories(int, []string) (bool, error)
 	}
 	Post_reactions interface {
 		Insert(string, string, string) error
@@ -61,7 +61,7 @@ type Application struct {
 		Delete(string, string) error
 		Likes(int) (int, error)
 		Dislikes(int) (int, error)
-		FilterByLiked(int, string, string) (bool, error)
+		FilterByLiked(int, int, string) (bool, error)
 	}
 	Comment_reactions interface {
 		Insert(string, string, string) error

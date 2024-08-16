@@ -38,9 +38,7 @@ func (m *PostReactionModel) Insert(post_id, user_id, is_like string) error {
 }
 
 func (m *PostReactionModel) Delete(post_id, user_id string) error {
-	var stmt string
-
-	stmt = `DELETE FROM post_reactions WHERE post_id = $1 AND user_id = $2`
+	stmt := `DELETE FROM post_reactions WHERE post_id = $1 AND user_id = $2`
 	_, err := m.DB.Exec(stmt, post_id, user_id)
 	if err != nil {
 		return err
@@ -86,8 +84,8 @@ func (m *PostReactionModel) Dislikes(post_id int) (int, error) {
 	return count, nil
 }
 
-func (m *PostReactionModel) FilterByLiked(post_id int, user_id, val string) (bool, error) {
-	if val != "1" {
+func (m *PostReactionModel) FilterByLiked(post_id, user_id int, val string) (bool, error) {
+	if len(val) == 0 || user_id == -1 {
 		return true, nil
 	}
 

@@ -20,6 +20,18 @@ func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.App.AuthenticatedUser(r) != nil {
+		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
+		if err != nil {
+			h.App.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		h.App.PutSessionData(sessionID, "flash", "Please log out before proceeding.")
+		h.App.Render(w, r, "signup_page.html", nil)
+		return
+	}
+
 	h.App.Render(w, r, "signup_page.html", &config.TemplateData{
 		Form: forms.New(nil),
 	})
@@ -65,6 +77,39 @@ func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
+func (h *Handlers) LoginUserForm(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/user/login" {
+		h.App.NotFoundHandler(w, r)
+		return
+	}
+	if r.Method == http.MethodPost {
+		h.LoginUser(w, r)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", "GET")
+		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		return
+	}
+
+	if h.App.AuthenticatedUser(r) != nil {
+		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
+		if err != nil {
+			h.App.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		h.App.PutSessionData(sessionID, "flash", "Please log out before proceeding.")
+		h.App.Render(w, r, "login_page.html", nil)
+		return
+	}
+
+	h.App.Render(w, r, "login_page.html", &config.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
 func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -101,26 +146,6 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (h *Handlers) LoginUserForm(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/user/login" {
-		h.App.NotFoundHandler(w, r)
-		return
-	}
-	if r.Method == http.MethodPost {
-		h.LoginUser(w, r)
-		return
-	}
-
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", "GET")
-		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
-		return
-	}
-	h.App.Render(w, r, "login_page.html", &config.TemplateData{
-		Form: forms.New(nil),
-	})
-}
-
 func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/user/logout" {
 		h.App.NotFoundHandler(w, r)
@@ -136,12 +161,6 @@ func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := h.App.GetSessionIDFromRequest(w, r)
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
-		return
-	}
-
-	if h.App.AuthenticatedUser(r) == nil {
-		h.App.PutSessionData(sessionID, "flash", "You are already logged out.")
-		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 

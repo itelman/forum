@@ -72,18 +72,18 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.App.AuthenticatedUser(r) == nil && form.ProvidedAtLeastOne("created", "liked") {
-		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
-		if err != nil {
-			h.App.ServerErrorHandler(w, r, err)
-			return
-		}
-		h.App.PutSessionData(sessionID, "flash", "Please sign in or sign up to proceed.")
+	loggedUser := h.App.AuthenticatedUser(r)
+	if loggedUser == nil && form.ProvidedAtLeastOne("created", "liked") {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	s, err := h.App.Posts.Filter(r.Form, h.App.Post_reactions.FilterByLiked, h.App.Post_category.FilterByCategories)
+	user_id := -1
+	if loggedUser != nil {
+		user_id = loggedUser.ID
+	}
+
+	s, err := h.App.Posts.Filter(user_id, r.Form, h.App.Post_reactions.FilterByLiked, h.App.Post_category.FilterByCategories)
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return

@@ -39,47 +39,11 @@ func (app *Application) LogRequest(next http.Handler) http.Handler {
 
 func (app *Application) RequireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionID, err := app.GetSessionIDFromRequest(w, r)
-		if err != nil {
-			app.ServerErrorHandler(w, r, err)
-			return
-		}
-
 		if app.AuthenticatedUser(r) == nil {
-			app.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again to proceed.")
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return
 		}
 
-		sessionData := app.GetSession(sessionID)
-		lastRequest, exists := sessionData["lastRequest"].(time.Time)
-		if !exists {
-			app.ServerErrorHandler(w, r, err)
-			return
-		}
-
-		if !time.Now().Before(lastRequest.Add(app.CookieLimit)) {
-			app.DeleteSession(sessionID)
-			delete(app.ActiveSessions, sessionData["userID"].(int))
-
-			newSessionID, err := app.CreateNewSession()
-			if err != nil {
-				app.ServerErrorHandler(w, r, err)
-				return
-			}
-
-			http.SetCookie(w, &http.Cookie{
-				Name:  "session_id",
-				Value: newSessionID,
-				Path:  "/",
-			})
-
-			app.PutSessionData(newSessionID, "flash", "Your session has expired. Please sign in again to proceed.")
-			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
-			return
-		}
-
-		app.UpdateSessionLastReq(sessionID)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -93,6 +57,24 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 		}
 
 		sessionData := app.GetSession(sessionID)
+		/*fmt.Println("COOKIE: ", sessionData)
+		fmt.Println("SESSIONS: ", app.SessionStore)*/
+
+		_, exists := sessionData["inactive"]
+		if exists {
+			app.DeleteSession(sessionID)
+			app.PutSessionData(sessionID, "flash", "You've been logged out. Please sign in again.")
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		flash, exists := sessionData["flash"]
+		if exists && flash == "You've been logged out successfully!" {
+			app.PutSessionData(sessionID, "inactive", 1)
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		userID, exists := sessionData["userID"]
 		if !exists {
 			next.ServeHTTP(w, r)
@@ -102,12 +84,30 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 		user, err := app.Users.Get(userID.(int))
 		if err == models.ErrNoRecord {
 			app.DeleteSession(sessionID)
+			delete(app.ActiveSessions, userID.(int))
 			next.ServeHTTP(w, r)
 			return
 		} else if err != nil {
 			app.ServerErrorHandler(w, r, err)
 			return
 		}
+
+		lastRequest, exists := sessionData["lastRequest"].(time.Time)
+		if !exists {
+			app.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		if !time.Now().Before(lastRequest.Add(app.CookieLimit)) {
+			app.DeleteSession(sessionID)
+			delete(app.ActiveSessions, sessionData["userID"].(int))
+
+			app.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again.")
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		app.UpdateSessionLastReq(sessionID)
 
 		ctx := context.WithValue(r.Context(), contextKeyUser, user)
 		next.ServeHTTP(w, r.WithContext(ctx))

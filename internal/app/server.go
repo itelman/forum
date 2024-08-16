@@ -32,7 +32,7 @@ func CreateServer(infoLog *log.Logger, errorLog *log.Logger) *http.Server {
 	app := &config.Application{
 		ErrorLog:          errorLog,
 		InfoLog:           infoLog,
-		CookieLimit:       5 * time.Second,
+		CookieLimit:       5 * time.Minute,
 		SessionStore:      make(map[string]map[string]interface{}),
 		Posts:             &sqlite.PostModel{DB: db},
 		Templatecache:     templateCache,

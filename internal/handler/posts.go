@@ -94,9 +94,10 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || id < 1 {
-		h.App.NotFoundHandler(w, r)
+	idQuery := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idQuery)
+	if err != nil || idQuery != strconv.Itoa(id) {
+		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 

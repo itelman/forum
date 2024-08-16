@@ -3,12 +3,14 @@
 {{define "title"}}Продолжить{{end}}
 
 {{define "body"}}
+{{if not .AuthenticatedUser}}
 <div class="signup-page-attention">
     <ul>
         <li>You cannot create more than one account with the same email.</li>
         <li>Your password should include at least 6 characters.</li>
     </ul>
 </div>
+{{end}}
 
 <form action="/user/signup" method="POST" novalidate>
     <!-- Include the CSRF token -->

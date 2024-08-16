@@ -13,7 +13,7 @@ var (
 
 type Post struct {
 	ID            int
-	UserID        string
+	UserID        int
 	Username      string
 	Title         string
 	Content       string
