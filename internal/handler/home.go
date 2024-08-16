@@ -58,15 +58,16 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
+
 	form := forms.New(r.Form)
 	form.RequiredAtLeastOne("categories", "created", "liked")
-
 	if !form.Valid() {
 		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
 		if err != nil {
 			h.App.ServerErrorHandler(w, r, err)
 			return
 		}
+
 		h.App.PutSessionData(sessionID, "flash", "Please select at least one filter.")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -96,6 +97,7 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.App.Render(w, r, "home_page.html", &config.TemplateData{
+		Form:       forms.New(nil),
 		Posts:      s,
 		Categories: c,
 	})
