@@ -1,6 +1,7 @@
-package handler
+package app
 
 import (
+	"forum/internal/handler"
 	"net/http"
 )
 
@@ -10,7 +11,7 @@ type routes struct {
 	RequireAuth bool
 }
 
-func (handlers *Handlers) Router() http.Handler {
+func Router(handlers *handler.Handlers) http.Handler {
 	mux := http.NewServeMux()
 
 	routes := []routes{

@@ -22,7 +22,7 @@ func (m *CommentModel) Insert(post_id, user_id, content string) error {
 }
 
 func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {
-	stmt := `SELECT comments.id, comments.post_id, users.name, comments.content, comments.created, comments.likes, comments.dislikes FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? ORDER BY comments.created DESC`
+	stmt := `SELECT comments.id, users.id, comments.post_id, users.name, comments.content, comments.created, comments.likes, comments.dislikes FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? ORDER BY comments.created DESC`
 	rows, err := m.DB.Query(stmt, post_id)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {
 
 	for rows.Next() {
 		s := &models.Comment{}
-		err := rows.Scan(&s.ID, &s.PostID, &s.Username, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+		err := rows.Scan(&s.ID, &s.UserID, &s.PostID, &s.Username, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
 		if err != nil {
 			return nil, err
 		}

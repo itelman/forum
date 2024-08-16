@@ -33,7 +33,7 @@ type User struct {
 
 type Comment struct {
 	ID            int
-	UserID        string
+	UserID        int
 	PostID        int
 	Username      string
 	Content       string
@@ -52,9 +52,4 @@ type Category struct {
 type Error struct {
 	Code    int
 	Message string
-}
-
-type Session struct {
-	Id      string
-	User_Id int
 }

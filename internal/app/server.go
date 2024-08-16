@@ -49,7 +49,7 @@ func CreateServer(infoLog *log.Logger, errorLog *log.Logger) *http.Server {
 	srv := &http.Server{
 		Addr:         ":8080",
 		ErrorLog:     errorLog,
-		Handler:      handlers.Router(),
+		Handler:      Router(handlers),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

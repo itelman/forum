@@ -34,8 +34,8 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post_id, err := strconv.Atoi(form.Get("post_id"))
-	if err != nil || post_id < 1 {
-		h.App.NotFoundHandler(w, r)
+	if err != nil || form.Get("post_id") != strconv.Itoa(post_id) {
+		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -81,8 +81,8 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 	}
 
 	comment_id, err := strconv.Atoi(form.Get("comment_id"))
-	if err != nil || comment_id < 1 {
-		h.App.NotFoundHandler(w, r)
+	if err != nil || form.Get("comment_id") != strconv.Itoa(comment_id) {
+		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
