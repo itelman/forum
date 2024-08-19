@@ -1,6 +1,8 @@
 package handler
 
-import "forum/internal/config"
+import (
+	"forum/internal/config"
+)
 
 type Handlers struct {
 	App *config.Application

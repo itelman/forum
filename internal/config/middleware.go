@@ -57,29 +57,14 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 		}
 
 		sessionData := app.GetSession(sessionID)
-		/*fmt.Println("COOKIE: ", sessionData)
-		fmt.Println("SESSIONS: ", app.SessionStore)*/
-
-		_, exists := sessionData["inactive"]
-		if exists {
-			app.DeleteSession(sessionID)
-			app.PutSessionData(sessionID, "flash", "You've been logged out. Please sign in again.")
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		flash, exists := sessionData["flash"]
-		if exists && flash == "You've been logged out successfully!" {
-			app.PutSessionData(sessionID, "inactive", 1)
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		userID, exists := sessionData["userID"]
 		if !exists {
 			next.ServeHTTP(w, r)
 			return
 		}
+
+		/*fmt.Println("COOKIE: ", sessionData)
+		fmt.Println("SESSIONS: ", app.SessionStore)*/
 
 		user, err := app.Users.Get(userID.(int))
 		if err == models.ErrNoRecord {

@@ -23,14 +23,14 @@ func (app *Application) ServerErrorHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *Application) ClientErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
-	err := &models.Error{
+	errorModel := &models.Error{
 		Code:    status,
 		Message: http.StatusText(status),
 	}
 
 	w.WriteHeader(status)
 	app.Render(w, r, "error_page.html", &TemplateData{
-		Error: err,
+		Error: errorModel,
 	})
 }
 

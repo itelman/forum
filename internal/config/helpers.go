@@ -62,11 +62,7 @@ func (app *Application) Render(w http.ResponseWriter, r *http.Request, name stri
 	buf := new(bytes.Buffer)
 	err := ts.Execute(buf, app.AddDefaultData(w, td, r))
 	if err != nil {
-		if name == "error_page.html" {
-			app.ServerError(w, r, err)
-		} else {
-			app.ServerErrorHandler(w, r, err)
-		}
+		app.ServerErrorHandler(w, r, err)
 		return
 	}
 
