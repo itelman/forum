@@ -53,3 +53,9 @@ type Error struct {
 	Code    int
 	Message string
 }
+
+type PostCategory struct {
+	PostID       int
+	CategoryName string
+	Created      time.Time
+}
