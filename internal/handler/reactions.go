@@ -19,14 +19,19 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	loggedUser := h.App.AuthenticatedUser(r)
+	if loggedUser == nil {
+		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
+	}
+
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("post_id", "user_id", "is_like")
+	form.Required("post_id", "is_like")
 
 	if !form.Valid() {
 		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
@@ -39,7 +44,7 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.App.Post_reactions.Insert(form.Get("post_id"), form.Get("user_id"), form.Get("is_like"))
+	err = h.App.Post_reactions.Insert(form.Get("post_id"), strconv.Itoa(loggedUser.ID), form.Get("is_like"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
@@ -66,14 +71,19 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	loggedUser := h.App.AuthenticatedUser(r)
+	if loggedUser == nil {
+		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
+	}
+
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("post_id", "comment_id", "user_id", "is_like")
+	form.Required("post_id", "comment_id", "is_like")
 
 	if !form.Valid() {
 		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
@@ -86,7 +96,7 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = h.App.Comment_reactions.Insert(form.Get("comment_id"), form.Get("user_id"), form.Get("is_like"))
+	err = h.App.Comment_reactions.Insert(form.Get("comment_id"), strconv.Itoa(loggedUser.ID), form.Get("is_like"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return

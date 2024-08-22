@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"forum/internal/service/forms"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
@@ -18,14 +19,19 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	loggedUser := h.App.AuthenticatedUser(r)
+	if loggedUser == nil {
+		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
+	}
+
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("post_id", "user_id", "content")
+	form.Required("post_id", "content")
 
 	if !form.Valid() {
 		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
@@ -38,7 +44,7 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.App.Comments.Insert(form.Get("post_id"), form.Get("user_id"), form.Get("content"))
+	err = h.App.Comments.Insert(form.Get("post_id"), strconv.Itoa(loggedUser.ID), form.Get("content"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return

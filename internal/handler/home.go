@@ -55,7 +55,7 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 

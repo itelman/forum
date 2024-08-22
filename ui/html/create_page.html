@@ -7,7 +7,6 @@
 <form action="/post/create" method="POST">
     <!-- Include the CSRF token -->
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-    <input type="hidden" name="user_id" value="{{.AuthenticatedUser.ID}}">
     {{with .Form}}
     <div>
         <label>Title:</label>

@@ -39,13 +39,18 @@ func (h *Handlers) CreatePostForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
+	loggedUser := h.App.AuthenticatedUser(r)
+	if loggedUser == nil {
+		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
+	}
+
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.App.ServerErrorHandler(w, r, err)
 		return
 	}
 	form := forms.New(r.PostForm)
-	form.Required("user_id", "title", "content", "categories")
+	form.Required("title", "content", "categories")
 	form.MaxLength("title", 100)
 
 	c, err := h.App.Categories.Latest()
@@ -61,7 +66,7 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	id, err := h.App.Posts.Insert(form.Get("user_id"), form.Get("title"), form.Get("content"))
+	id, err := h.App.Posts.Insert(strconv.Itoa(loggedUser.ID), form.Get("title"), form.Get("content"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
