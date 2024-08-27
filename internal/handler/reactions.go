@@ -20,9 +20,6 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loggedUser := h.App.AuthenticatedUser(r)
-	if loggedUser == nil {
-		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
-	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -38,13 +35,15 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post_id, err := strconv.Atoi(form.Get("post_id"))
-	if err != nil || form.Get("post_id") != strconv.Itoa(post_id) {
+	postIdQuery := form.Get("post_id")
+
+	post_id, err := strconv.Atoi(postIdQuery)
+	if err != nil || postIdQuery != strconv.Itoa(post_id) {
 		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
-	err = h.App.Post_reactions.Insert(form.Get("post_id"), strconv.Itoa(loggedUser.ID), form.Get("is_like"))
+	err = h.App.Post_reactions.Insert(postIdQuery, strconv.Itoa(loggedUser.ID), form.Get("is_like"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
@@ -56,7 +55,7 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%s", form.Get("post_id")), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%s", postIdQuery), http.StatusSeeOther)
 }
 
 func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request) {
@@ -72,9 +71,6 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 	}
 
 	loggedUser := h.App.AuthenticatedUser(r)
-	if loggedUser == nil {
-		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
-	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -90,13 +86,15 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	comment_id, err := strconv.Atoi(form.Get("comment_id"))
-	if err != nil || form.Get("comment_id") != strconv.Itoa(comment_id) {
+	commentIdQuery := form.Get("comment_id")
+
+	comment_id, err := strconv.Atoi(commentIdQuery)
+	if err != nil || commentIdQuery != strconv.Itoa(comment_id) {
 		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
-	err = h.App.Comment_reactions.Insert(form.Get("comment_id"), strconv.Itoa(loggedUser.ID), form.Get("is_like"))
+	err = h.App.Comment_reactions.Insert(commentIdQuery, strconv.Itoa(loggedUser.ID), form.Get("is_like"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return

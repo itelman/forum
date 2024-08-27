@@ -11,10 +11,8 @@ type PostCategoryModel struct {
 }
 
 func (m *PostCategoryModel) Insert(post_id string, categories_id []string) error {
-	var stmt string
-
 	for _, id := range categories_id {
-		stmt = `INSERT INTO post_category (post_id, category_id) VALUES(?, ?)`
+		stmt := `INSERT INTO post_category (post_id, category_id) VALUES(?, ?)`
 		_, err := m.DB.Exec(stmt, post_id, id)
 		if err != nil {
 			return err

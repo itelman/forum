@@ -75,6 +75,13 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 
 	loggedUser := h.App.AuthenticatedUser(r)
 	if loggedUser == nil && form.ProvidedAtLeastOne("created", "liked") {
+		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
+		if err != nil {
+			h.App.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		h.App.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again.")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}

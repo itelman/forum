@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"forum/internal/repository/models"
 	"net/url"
+	"strings"
 )
 
 type PostModel struct {
@@ -11,6 +12,8 @@ type PostModel struct {
 }
 
 func (m *PostModel) Insert(user_id, title, content string) (int, error) {
+	title = strings.TrimSpace(title)
+
 	stmt := `INSERT INTO posts (user_id, title, content) VALUES(?, ?, ?)`
 	result, err := m.DB.Exec(stmt, user_id, title, content)
 	if err != nil {

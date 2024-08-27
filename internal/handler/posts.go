@@ -39,10 +39,18 @@ func (h *Handlers) CreatePostForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
-	loggedUser := h.App.AuthenticatedUser(r)
-	if loggedUser == nil {
-		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
+	if r.URL.Path != "/post/create" {
+		h.App.NotFoundHandler(w, r)
+		return
 	}
+
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		return
+	}
+
+	loggedUser := h.App.AuthenticatedUser(r)
 
 	err := r.ParseForm()
 	if err != nil {
@@ -51,7 +59,7 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	form := forms.New(r.PostForm)
 	form.Required("title", "content", "categories")
-	form.MaxLength("title", 100)
+	form.MaxLength("title", 50)
 
 	c, err := h.App.Categories.Latest()
 	if err != nil {

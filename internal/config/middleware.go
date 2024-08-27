@@ -56,9 +56,8 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		sessionData := app.GetSession(sessionID)
-		userID, exists := sessionData["userID"].(int)
-		if !exists {
+		userID := app.GetSessionUserID(sessionID)
+		if userID == -1 {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -77,6 +76,7 @@ func (app *Application) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
+		sessionData := app.GetSession(sessionID)
 		lastRequest, exists := sessionData["lastRequest"].(time.Time)
 		if !exists {
 			app.ServerErrorHandler(w, r, err)

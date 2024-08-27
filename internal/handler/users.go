@@ -9,6 +9,11 @@ import (
 )
 
 func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/user/signup" {
+		h.App.NotFoundHandler(w, r)
+		return
+	}
+
 	if r.Method == http.MethodPost {
 		h.SignupUser(w, r)
 		return
@@ -38,6 +43,17 @@ func (h *Handlers) SignupUserForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/user/signup" {
+		h.App.NotFoundHandler(w, r)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
@@ -45,8 +61,15 @@ func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 	form := forms.New(r.PostForm)
 	form.Required("name", "email", "password")
+
+	form.MatchesPattern("name", forms.NameRX)
 	form.MatchesPattern("email", forms.EmailRX)
+	form.MatchesPattern("password", forms.PasswordRX)
+
+	form.MaxLength("name", 15)
+	form.MaxLength("email", 20)
 	form.MinLength("password", 6)
+	form.MaxLength("password", 10)
 
 	if !form.Valid() {
 		h.App.Render(w, r, "signup_page.html", &config.TemplateData{
@@ -111,6 +134,17 @@ func (h *Handlers) LoginUserForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/user/login" {
+		h.App.NotFoundHandler(w, r)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
@@ -127,6 +161,13 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 	} else if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
+	}
+
+	existingSessionID, exists := h.App.ActiveSessions[id]
+	if exists {
+		h.App.DeleteSession(existingSessionID)
+		delete(h.App.ActiveSessions, id)
+		h.App.PutSessionData(existingSessionID, "flash", "Your session has expired. Please sign in again.")
 	}
 
 	sessionID, err := h.App.CreateNewSession(id)
@@ -152,8 +193,8 @@ func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", "POST")
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", "GET")
 		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}

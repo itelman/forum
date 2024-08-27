@@ -4,8 +4,6 @@
 
 {{define "body"}}
 <form action="/user/login" method="POST" novalidate>
-    <!-- Include the CSRF token -->
-    <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
     {{with .Form}}
     {{with .Errors.Get "generic"}}
     <div class="error">{{.}}</div>
@@ -19,7 +17,7 @@
         <input type="password" name="password">
     </div>
     <div>
-        <input type="submit" value="Войти">
+        <input type="submit" value="Sign In">
     </div>
     {{end}}
 </form>

@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"forum/internal/repository/models"
+	"strings"
 
 	"github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
@@ -13,6 +14,9 @@ type UserModel struct {
 }
 
 func (m *UserModel) Insert(name, email, password string) error {
+	name = strings.ToLower(name)
+	password = strings.ToLower(password)
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
@@ -29,6 +33,8 @@ func (m *UserModel) Insert(name, email, password string) error {
 }
 
 func (m *UserModel) Authenticate(name, password string) (int, error) {
+	name = strings.ToLower(name)
+
 	var id int
 	var hashedPassword []byte
 	row := m.DB.QueryRow("SELECT id, hashed_password FROM users WHERE name=?", name)

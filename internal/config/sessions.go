@@ -94,40 +94,6 @@ func (app *Application) DeleteSession(sessionID string) {
 	delete(app.SessionStore, sessionID)
 }
 
-func (app *Application) SetSessionToken(sessionID, token string) {
-	app.SessionMutex.Lock()
-	defer app.SessionMutex.Unlock()
-
-	session, exists := app.SessionStore[sessionID]
-	if !exists {
-		session = make(map[string]interface{})
-		app.SessionStore[sessionID] = session
-	}
-	session["csrf_token"] = token
-}
-
-func (app *Application) GetSessionToken(sessionID string) (string, bool) {
-	app.SessionMutex.Lock()
-	defer app.SessionMutex.Unlock()
-
-	sessionData, exists := app.SessionStore[sessionID]
-	if !exists {
-		return "", false
-	}
-
-	token, exists := sessionData["csrf_token"]
-	if !exists {
-		return "", false
-	}
-
-	csrfToken, ok := token.(string)
-	if !ok {
-		return "", false
-	}
-
-	return csrfToken, true
-}
-
 func (app *Application) DeleteSessionData(sessionID string, key string) {
 	app.SessionMutex.Lock()
 	defer app.SessionMutex.Unlock()
@@ -148,12 +114,12 @@ func (app *Application) GetSessionUserID(sessionID string) int {
 
 	sessionData, exists := app.SessionStore[sessionID]
 	if !exists {
-		return 0
+		return -1
 	}
 
 	userID, ok := sessionData["userID"].(int)
 	if !ok {
-		return 0
+		return -1
 	}
 
 	return userID

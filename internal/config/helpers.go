@@ -2,8 +2,6 @@ package config
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"forum/internal/repository/models"
 	"net/http"
@@ -11,30 +9,15 @@ import (
 	"time"
 )
 
-func GenerateCSRFToken() (string, error) {
-	tokenBytes := make([]byte, 32) // 32 bytes = 256 bits
-	_, err := rand.Read(tokenBytes)
-	if err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(tokenBytes), nil
-}
-
 func (app *Application) AddDefaultData(w http.ResponseWriter, td *TemplateData, r *http.Request) *TemplateData {
 	if td == nil {
 		td = &TemplateData{}
-	}
-	sessionID, err := app.GetSessionIDFromRequest(w, r)
-	if err == nil {
-		csrfToken, _ := app.GetSessionToken(sessionID)
-		td.CSRFToken = csrfToken
-	} else {
-		td.CSRFToken = ""
 	}
 
 	td.AuthenticatedUser = app.AuthenticatedUser(r)
 	td.CurrentYear = time.Now().Year()
 
+	sessionID, err := app.GetSessionIDFromRequest(w, r)
 	if err == nil {
 		flash := app.GetSession(sessionID)["flash"]
 		if flash != nil {

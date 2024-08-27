@@ -21,7 +21,6 @@ var functions = template.FuncMap{
 
 type TemplateData struct {
 	AuthenticatedUser *models.User
-	CSRFToken         string
 	CurrentYear       int
 	Flash             string
 	Form              *forms.Form

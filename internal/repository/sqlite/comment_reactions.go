@@ -39,9 +39,7 @@ func (m *CommentReactionModel) Insert(comment_id, user_id, is_like string) error
 }
 
 func (m *CommentReactionModel) Delete(comment_id, user_id string) error {
-	var stmt string
-
-	stmt = `DELETE FROM comment_reactions WHERE comment_id = $1 AND user_id = $2`
+	stmt := `DELETE FROM comment_reactions WHERE comment_id = $1 AND user_id = $2`
 	_, err := m.DB.Exec(stmt, comment_id, user_id)
 	if err != nil {
 		return err

@@ -56,6 +56,9 @@
             <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
         </div>
     </div>
+    <br>
+
+    <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
 </div>
 {{end}}
 
@@ -67,7 +70,7 @@
         <div class="form-element-comment">
             <textarea name="content" id="comment-text" cols="30" rows="10" class="textarea-comment"></textarea>
             <button class="form-element-button-comments" type="submit">
-                <p class="">Отправить</p>
+                <input type="submit" value="Submit">
             </button>
         </div>
     </form>
@@ -129,12 +132,12 @@
         </div>
         <br>
 
-        <time class="comment-posted-time">Создано: {{humanDate .Created}}</time>
+        <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
     </div>
 </div>
 {{end}}
 {{else}}
-<p>No Comments Yet!</p>
+<p class="comment-info">No Comments Yet!</p>
 {{end}}
 
 {{end}}

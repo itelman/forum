@@ -20,9 +20,6 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loggedUser := h.App.AuthenticatedUser(r)
-	if loggedUser == nil {
-		h.App.ClientErrorHandler(w, r, http.StatusUnauthorized)
-	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -32,6 +29,7 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 	form.Required("post_id", "content")
+	post_id := form.Get("post_id")
 
 	if !form.Valid() {
 		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
@@ -40,11 +38,11 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.App.PutSessionData(sessionID, "flash", "Please type something into the comments section.")
-		http.Redirect(w, r, fmt.Sprintf("/post?id=%s", form.Get("post_id")), http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/post?id=%s", post_id), http.StatusSeeOther)
 		return
 	}
 
-	err = h.App.Comments.Insert(form.Get("post_id"), strconv.Itoa(loggedUser.ID), form.Get("content"))
+	err = h.App.Comments.Insert(post_id, strconv.Itoa(loggedUser.ID), form.Get("content"))
 	if err != nil {
 		h.App.ServerErrorHandler(w, r, err)
 		return
@@ -56,5 +54,5 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 	h.App.PutSessionData(sessionID, "flash", "Comment successfully created!")
 
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%s", form.Get("post_id")), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%s", post_id), http.StatusSeeOther)
 }

@@ -24,10 +24,9 @@
             <a class="menuItem" href="/post/create">Create Post</a>
             {{end}}
         </li>
-        <li>{{if .AuthenticatedUser}}
-            <form class="menuItem" action="/user/logout" method="POST">
-                <!-- Include the CSRF token -->
-                <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
+        <li>
+            {{if .AuthenticatedUser}}
+            <form class="menuItem" action="/user/logout">
                 <button>Log Out ({{.AuthenticatedUser.Name}})</button>
             </form>
             {{else}}

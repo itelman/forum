@@ -10,9 +10,7 @@ type CommentModel struct {
 }
 
 func (m *CommentModel) Insert(post_id, user_id, content string) error {
-	var stmt string
-
-	stmt = `INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3)`
+	stmt := `INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3)`
 	_, err := m.DB.Exec(stmt, post_id, user_id, content)
 	if err != nil {
 		return err
