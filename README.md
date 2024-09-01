@@ -100,8 +100,18 @@ This project will help you learn about:
   - Manipulation of databases
 - The basics of encryption
 
-### How to run
+## Usage: how to run
 
+- You can view the app at:
+https://forum-099y.onrender.com/
+
+Or
+
+- Download the repository to your local machine.
+- Open the repository.
+- Run the following command:
 ```console
 go run main.go
 ```
+- Run the server at:
+http://localhost:8080/
