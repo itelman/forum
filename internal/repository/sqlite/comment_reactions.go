@@ -3,13 +3,20 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"forum/internal/repository/models"
+
+	"github.com/mattn/go-sqlite3"
 )
 
 type CommentReactionModel struct {
 	DB *sql.DB
 }
 
-func (m *CommentReactionModel) Insert(comment_id, user_id, is_like string) error {
+func NewCommentReactionModel(db *sql.DB) *CommentReactionModel {
+	return &CommentReactionModel{db}
+}
+
+func (m *CommentReactionModel) Insert(comment_id, user_id, is_like int) error {
 	existingLike, err := m.Get(comment_id, user_id)
 	if err != nil {
 		return err
@@ -20,7 +27,7 @@ func (m *CommentReactionModel) Insert(comment_id, user_id, is_like string) error
 			return err
 		}
 		return nil
-	} else if existingLike != "-1" {
+	} else if existingLike != -1 {
 		stmt := `UPDATE comment_reactions SET is_like = ? WHERE comment_id = ? AND user_id = ?`
 		_, err = m.DB.Exec(stmt, is_like, comment_id, user_id)
 		if err != nil {
@@ -32,13 +39,16 @@ func (m *CommentReactionModel) Insert(comment_id, user_id, is_like string) error
 	stmt := `INSERT INTO comment_reactions (comment_id, user_id, is_like) VALUES(?, ?, ?)`
 	_, err = m.DB.Exec(stmt, comment_id, user_id, is_like)
 	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+			return models.ErrNoRecord
+		}
 		return err
 	}
 
 	return nil
 }
 
-func (m *CommentReactionModel) Delete(comment_id, user_id string) error {
+func (m *CommentReactionModel) Delete(comment_id, user_id int) error {
 	stmt := `DELETE FROM comment_reactions WHERE comment_id = $1 AND user_id = $2`
 	_, err := m.DB.Exec(stmt, comment_id, user_id)
 	if err != nil {
@@ -48,15 +58,15 @@ func (m *CommentReactionModel) Delete(comment_id, user_id string) error {
 	return nil
 }
 
-func (m *CommentReactionModel) Get(comment_id, user_id string) (string, error) {
-	var isLike string
+func (m *CommentReactionModel) Get(comment_id, user_id int) (int, error) {
+	var isLike int
 
 	stmt := `SELECT is_like FROM comment_reactions WHERE comment_id = $1 AND user_id = $2`
 	err := m.DB.QueryRow(stmt, comment_id, user_id).Scan(&isLike)
 	if err == sql.ErrNoRows {
-		return "-1", nil
+		return -1, nil
 	} else if err != nil {
-		return "-1", err
+		return -1, err
 	}
 	return isLike, nil
 }

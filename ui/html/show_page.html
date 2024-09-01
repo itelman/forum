@@ -21,7 +21,7 @@
                 <input type="hidden" name="is_like" value="1">
 
                 <button class="reaction like">
-                    {{if eq .ReactedByUser "1"}}
+                    {{if eq .ReactedByUser 1}}
                     <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg" alt="Like">
                     {{else}}
                     <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
@@ -40,7 +40,7 @@
                 <input type="hidden" name="is_like" value="0">
 
                 <button class="reaction dislike">
-                    {{if eq .ReactedByUser "0"}}
+                    {{if eq .ReactedByUser 0}}
                     <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-active.svg"
                         alt="Dislike">
                     {{else}}
@@ -55,10 +55,9 @@
             {{end}}
             <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
         </div>
-    </div>
-    <br>
 
-    <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
+        <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
+    </div>
 </div>
 {{end}}
 
@@ -88,12 +87,11 @@
         <div class="reaction-container">
             {{if $td.AuthenticatedUser}}
             <form action="/comment/reaction" method="POST">
-                <input type="hidden" name="post_id" value="{{$td.Post.ID}}">
                 <input type="hidden" name="comment_id" value="{{.ID}}">
                 <input type="hidden" name="is_like" value="1">
 
                 <button class="reaction like">
-                    {{if eq .ReactedByUser "1"}}
+                    {{if eq .ReactedByUser 1}}
                     <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg" alt="Like">
                     {{else}}
                     <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
@@ -109,12 +107,11 @@
 
             {{if $td.AuthenticatedUser}}
             <form action="/comment/reaction" method="POST">
-                <input type="hidden" name="post_id" value="{{$td.Post.ID}}">
                 <input type="hidden" name="comment_id" value="{{.ID}}">
                 <input type="hidden" name="is_like" value="0">
 
                 <button class="reaction dislike">
-                    {{if eq .ReactedByUser "0"}}
+                    {{if eq .ReactedByUser 0}}
                     <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-active.svg"
                         alt="Dislike">
                     {{else}}

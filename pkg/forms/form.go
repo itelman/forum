@@ -10,7 +10,7 @@ import (
 
 var (
 	EmailRX    = regexp.MustCompile(`^(?P<name>[a-zA-Z0-9.!#$%&'*+/=?^_ \x60{|}~-]+)@(?P<domain>[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)$`)
-	NameRX     = regexp.MustCompile(`^([a-zA-Z]+)([0-9_.-]*)$`)
+	NameRX     = regexp.MustCompile(`^[a-zA-Z]{5,}([._-]{0,1}[a-zA-Z0-9]{2,})*$`)
 	PasswordRX = regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
 )
 
@@ -30,7 +30,7 @@ func (f *Form) Required(fields ...string) {
 	for _, field := range fields {
 		value := f.Get(field)
 		if strings.TrimSpace(value) == "" {
-			f.Errors.Add(field, "This field should not be empty")
+			f.Errors.Add(field, "This field must not be empty")
 		}
 	}
 }
@@ -55,7 +55,7 @@ func (f *Form) PermittedValues(field string, opts ...string) {
 			return
 		}
 	}
-	f.Errors.Add(field, "Input does not match the format")
+	f.Errors.Add(field, "Please provide input that matches the requested format")
 }
 
 func (f *Form) MinLength(field string, d int) {
@@ -64,7 +64,7 @@ func (f *Form) MinLength(field string, d int) {
 		return
 	}
 	if utf8.RuneCountInString(value) < d {
-		f.Errors.Add(field, fmt.Sprintf("Please provide input with minimum length (min %d)", d))
+		f.Errors.Add(field, fmt.Sprintf("Please provide input with minimum %d characters", d))
 	}
 }
 
@@ -75,7 +75,7 @@ func (f *Form) MatchesPattern(field string, pattern *regexp.Regexp) {
 	}
 
 	if !pattern.MatchString(value) {
-		f.Errors.Add(field, "Input does not match the format")
+		f.Errors.Add(field, "Please provide input that matches the requested format")
 	}
 }
 
@@ -94,7 +94,7 @@ func (f *Form) RequiredAtLeastOne(fields ...string) {
 	}
 
 	if count == len(fields) {
-		f.Errors.Add(fields[0], "This field should not be empty")
+		f.Errors.Add(fields[0], "This field must not be empty")
 	}
 }
 

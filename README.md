@@ -99,3 +99,9 @@ This project will help you learn about:
 - SQL language
   - Manipulation of databases
 - The basics of encryption
+
+### How to run
+
+```console
+go run main.go
+```

@@ -1,11 +1,11 @@
 build:
-	docker image build -t forum:alpha .
+	docker image build -t forum .
 run:
-	docker run -d -p 8081:8081 --name myforum forum:alpha 
+	docker run -dp 8080:8080 --name forum forum 
 stop:
-	docker stop $$(docker ps -aq)
+	docker stop forum
 remove:
-	docker rm $$(docker ps -aq)
+	docker rm -f forum
 clean: stop remove
 	docker system prune -a
 all: build run

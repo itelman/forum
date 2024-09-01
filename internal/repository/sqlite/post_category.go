@@ -10,7 +10,11 @@ type PostCategoryModel struct {
 	DB *sql.DB
 }
 
-func (m *PostCategoryModel) Insert(post_id string, categories_id []string) error {
+func NewPostCategoryModel(db *sql.DB) *PostCategoryModel {
+	return &PostCategoryModel{db}
+}
+
+func (m *PostCategoryModel) Insert(post_id int, categories_id []string) error {
 	for _, id := range categories_id {
 		stmt := `INSERT INTO post_category (post_id, category_id) VALUES(?, ?)`
 		_, err := m.DB.Exec(stmt, post_id, id)

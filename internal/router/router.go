@@ -1,7 +1,8 @@
-package app
+package router
 
 import (
 	"forum/internal/handler"
+	"forum/internal/service/middleware"
 	"net/http"
 )
 
@@ -27,12 +28,14 @@ func Router(handlers *handler.Handlers) http.Handler {
 		{"/user/logout", handlers.LogoutUser, true},
 	}
 
+	middleware := &middleware.Middleware{Handlers: handlers}
+
 	for _, route := range routes {
-		mux.Handle(route.Path, handlers.App.DynamicMiddleware(route.Handler, route.RequireAuth))
+		mux.Handle(route.Path, middleware.DynamicMiddleware(route.Handler, route.RequireAuth))
 	}
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
-	return handlers.App.StandardMiddleware(mux)
+	return middleware.StandardMiddleware(mux)
 }

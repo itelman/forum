@@ -2,13 +2,20 @@ package sqlite
 
 import (
 	"database/sql"
+	"forum/internal/repository/models"
+
+	"github.com/mattn/go-sqlite3"
 )
 
 type PostReactionModel struct {
 	DB *sql.DB
 }
 
-func (m *PostReactionModel) Insert(post_id, user_id, is_like string) error {
+func NewPostReactionModel(db *sql.DB) *PostReactionModel {
+	return &PostReactionModel{db}
+}
+
+func (m *PostReactionModel) Insert(post_id, user_id, is_like int) error {
 	existingLike, err := m.Get(post_id, user_id)
 	if err != nil {
 		return err
@@ -19,7 +26,7 @@ func (m *PostReactionModel) Insert(post_id, user_id, is_like string) error {
 			return err
 		}
 		return nil
-	} else if existingLike != "-1" {
+	} else if existingLike != -1 {
 		stmt := `UPDATE post_reactions SET is_like = ? WHERE post_id = ? AND user_id = ?`
 		_, err = m.DB.Exec(stmt, is_like, post_id, user_id)
 		if err != nil {
@@ -31,13 +38,16 @@ func (m *PostReactionModel) Insert(post_id, user_id, is_like string) error {
 	stmt := `INSERT INTO post_reactions (post_id, user_id, is_like) VALUES(?, ?, ?)`
 	_, err = m.DB.Exec(stmt, post_id, user_id, is_like)
 	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+			return models.ErrNoRecord
+		}
 		return err
 	}
 
 	return nil
 }
 
-func (m *PostReactionModel) Delete(post_id, user_id string) error {
+func (m *PostReactionModel) Delete(post_id, user_id int) error {
 	stmt := `DELETE FROM post_reactions WHERE post_id = $1 AND user_id = $2`
 	_, err := m.DB.Exec(stmt, post_id, user_id)
 	if err != nil {
@@ -47,15 +57,15 @@ func (m *PostReactionModel) Delete(post_id, user_id string) error {
 	return nil
 }
 
-func (m *PostReactionModel) Get(post_id, user_id string) (string, error) {
-	var isLike string
+func (m *PostReactionModel) Get(post_id, user_id int) (int, error) {
+	var isLike int
 
 	stmt := `SELECT is_like FROM post_reactions WHERE post_id = $1 AND user_id = $2`
 	err := m.DB.QueryRow(stmt, post_id, user_id).Scan(&isLike)
 	if err == sql.ErrNoRows {
-		return "-1", nil
+		return -1, nil
 	} else if err != nil {
-		return "-1", err
+		return -1, err
 	}
 
 	return isLike, nil
@@ -85,7 +95,7 @@ func (m *PostReactionModel) Dislikes(post_id int) (int, error) {
 }
 
 func (m *PostReactionModel) FilterByLiked(post_id, user_id int, val string) (bool, error) {
-	if len(val) == 0 || user_id == -1 {
+	if len(val) == 0 || val == "0" || user_id == -1 {
 		return true, nil
 	}
 

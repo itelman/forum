@@ -2,57 +2,69 @@ package handler
 
 import (
 	"fmt"
-	"forum/internal/service/forms"
+	"forum/internal/repository/models"
+	"forum/internal/service/auth"
+	"forum/pkg/forms"
 	"net/http"
 	"strconv"
 )
 
 func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/post/comment" {
-		h.App.NotFoundHandler(w, r)
+		h.NotFoundHandler(w, r)
 		return
 	}
 
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", "POST")
-		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		h.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
 
-	loggedUser := h.App.AuthenticatedUser(r)
+	sesStore := h.App.SessionStore
 
-	err := r.ParseForm()
+	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	loggedUser := auth.AuthenticatedUser(r)
+
+	err = r.ParseForm()
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
 	form := forms.New(r.PostForm)
 	form.Required("post_id", "content")
-	post_id := form.Get("post_id")
+
+	postIdQuery := form.Get("post_id")
+	post_id, err := strconv.Atoi(postIdQuery)
+	if err != nil || postIdQuery != strconv.Itoa(post_id) {
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
+		return
+	}
 
 	if !form.Valid() {
-		sessionID, err := h.App.GetSessionIDFromRequest(w, r)
+		sesStore.PutSessionData(sessionID, "flash", "Please type something into the comments section.")
+		http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusSeeOther)
+		return
+	}
+
+	err = h.App.Repository.Comments.Insert(post_id, loggedUser.ID, form.Get("content"))
+	if err != nil {
 		if err != nil {
-			h.App.ServerErrorHandler(w, r, err)
+			if err == models.ErrNoRecord {
+				h.NotFoundHandler(w, r)
+			} else {
+				h.ServerErrorHandler(w, r, err)
+			}
 			return
 		}
-		h.App.PutSessionData(sessionID, "flash", "Please type something into the comments section.")
-		http.Redirect(w, r, fmt.Sprintf("/post?id=%s", post_id), http.StatusSeeOther)
-		return
 	}
 
-	err = h.App.Comments.Insert(post_id, strconv.Itoa(loggedUser.ID), form.Get("content"))
-	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
-		return
-	}
-	sessionID, err := h.App.GetSessionIDFromRequest(w, r)
-	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
-		return
-	}
-	h.App.PutSessionData(sessionID, "flash", "Comment successfully created!")
-
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%s", post_id), http.StatusSeeOther)
+	sesStore.PutSessionData(sessionID, "flash", "Comment successfully created!")
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusSeeOther)
 }

@@ -9,6 +9,24 @@ type CategoryModel struct {
 	DB *sql.DB
 }
 
+func NewCategoryModel(db *sql.DB) *CategoryModel {
+	return &CategoryModel{db}
+}
+
+func (m *CategoryModel) Get(id int) (*models.Category, error) {
+	stmt := `SELECT id, name, created FROM categories WHERE id = ?`
+	row := m.DB.QueryRow(stmt, id)
+
+	s := &models.Category{}
+	err := row.Scan(&s.ID, &s.Name, &s.Created)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	} else if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
 func (m *CategoryModel) Latest() ([]*models.Category, error) {
 	stmt := `SELECT * FROM categories`
 	rows, err := m.DB.Query(stmt)

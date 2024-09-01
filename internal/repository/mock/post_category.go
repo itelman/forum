@@ -12,7 +12,7 @@ func NewPostCategoryModel() *PostCategoryModel {
 	return &PostCategoryModel{make([]*models.PostCategory, 0)}
 }
 
-func (m *PostCategoryModel) Insert(post_id string, categories_id []string) error {
+func (m *PostCategoryModel) Insert(post_id int, categories_id []string) error {
 	return nil
 }
 

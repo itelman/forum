@@ -1,39 +1,26 @@
-package config
+package tmplcache
 
 import (
-	"forum/internal/repository/models"
-	"forum/internal/service/forms"
 	"html/template"
 	"path/filepath"
 	"time"
 )
 
+type TemplateCache map[string]*template.Template
+
 func humanDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	return t.Format("02 Jan 2006 at 15:04")
+	return t.Local().Format("02 Jan 2006 at 15:04")
 }
 
 var functions = template.FuncMap{
 	"humanDate": humanDate,
 }
 
-type TemplateData struct {
-	AuthenticatedUser *models.User
-	CurrentYear       int
-	Flash             string
-	Form              *forms.Form
-	Post              *models.Post
-	Posts             []*models.Post
-	Comments          []*models.Comment
-	Categories        []*models.Category
-	PCRelations       []string
-	Error             *models.Error
-}
-
-func NewTemplateCache(dir string) (map[string]*template.Template, error) {
-	cache := map[string]*template.Template{}
+func NewTemplateCache(dir string) (TemplateCache, error) {
+	cache := TemplateCache{}
 	pages, err := filepath.Glob(filepath.Join(dir, "*page.html"))
 	if err != nil {
 		return nil, err

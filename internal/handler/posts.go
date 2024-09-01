@@ -2,16 +2,18 @@ package handler
 
 import (
 	"fmt"
-	"forum/internal/config"
 	"forum/internal/repository/models"
-	"forum/internal/service/forms"
+	"forum/internal/service/auth"
+	"forum/internal/service/tmpldata"
+	"forum/pkg/forms"
 	"net/http"
+	"regexp"
 	"strconv"
 )
 
 func (h *Handlers) CreatePostForm(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/post/create" {
-		h.App.NotFoundHandler(w, r)
+		h.NotFoundHandler(w, r)
 		return
 	}
 
@@ -22,133 +24,169 @@ func (h *Handlers) CreatePostForm(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", "GET")
-		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		h.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
 
-	c, err := h.App.Categories.Latest()
+	c, err := h.App.Repository.Categories.Latest()
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
-	h.App.Render(w, r, "create_page.html", &config.TemplateData{
-		Form:       forms.New(nil),
-		Categories: c,
+	err = h.App.Render(w, r, &tmpldata.TemplateData{
+		TemplateName: "create_page.html",
+		Form:         forms.New(nil),
+		Categories:   c,
 	})
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
 }
 
 func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/post/create" {
-		h.App.NotFoundHandler(w, r)
+		h.NotFoundHandler(w, r)
 		return
 	}
 
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", "POST")
-		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		h.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
 
-	loggedUser := h.App.AuthenticatedUser(r)
+	loggedUser := auth.AuthenticatedUser(r)
 
 	err := r.ParseForm()
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 	form := forms.New(r.PostForm)
 	form.Required("title", "content", "categories")
-	form.MaxLength("title", 50)
 
-	c, err := h.App.Categories.Latest()
+	form.MinLength("title", 5)
+	form.MaxLength("title", 50)
+	form.MatchesPattern("title", regexp.MustCompile(`^\S.*\S$`))
+
+	c, err := h.App.Repository.Categories.Latest()
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
 	if !form.Valid() {
-		h.App.Render(w, r, "create_page.html", &config.TemplateData{
-			Form:       form,
-			Categories: c,
+		err = h.App.Render(w, r, &tmpldata.TemplateData{
+			TemplateName: "create_page.html",
+			Form:         form,
+			Categories:   c,
 		})
-		return
-	}
-	id, err := h.App.Posts.Insert(strconv.Itoa(loggedUser.ID), form.Get("title"), form.Get("content"))
-	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		if err != nil {
+			h.ServerErrorHandler(w, r, err)
+			return
+		}
 		return
 	}
 
-	err = h.App.Post_category.Insert(strconv.Itoa(id), r.PostForm["categories"])
+	for _, idStr := range r.PostForm["categories"] {
+		id, err := strconv.Atoi(idStr)
+		if err != nil || idStr != strconv.Itoa(id) {
+			h.ClientErrorHandler(w, r, http.StatusBadRequest)
+			return
+		}
+
+		_, err = h.App.Repository.Categories.Get(id)
+		if err != nil {
+			if err == models.ErrNoRecord {
+				h.NotFoundHandler(w, r)
+			} else {
+				h.ServerErrorHandler(w, r, err)
+			}
+			return
+		}
+	}
+
+	id, err := h.App.Repository.Posts.Insert(loggedUser.ID, form.Get("title"), form.Get("content"))
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
-	sessionID, err := h.App.GetSessionIDFromRequest(w, r)
+
+	err = h.App.Repository.Post_Category.Insert(id, r.PostForm["categories"])
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
-	h.App.PutSessionData(sessionID, "flash", "Post successfully created!")
+
+	sesStore := h.App.SessionStore
+
+	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+	sesStore.PutSessionData(sessionID, "flash", "Post successfully created!")
 
 	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", id), http.StatusSeeOther)
 }
 
 func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/post" {
-		h.App.NotFoundHandler(w, r)
+		h.NotFoundHandler(w, r)
 		return
 	}
 
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", "GET")
-		h.App.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
+		h.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
 
 	idQuery := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idQuery)
 	if err != nil || idQuery != strconv.Itoa(id) {
-		h.App.ClientErrorHandler(w, r, http.StatusBadRequest)
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
 		return
 	}
 
-	s, err := h.App.Posts.Get(id)
-	if err == models.ErrNoRecord {
-		h.App.NotFoundHandler(w, r)
-		return
-	} else if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
-		return
-	}
-
-	c, err := h.App.Comments.Latest(id)
+	s, err := h.App.Repository.Posts.Get(id)
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		if err == models.ErrNoRecord {
+			h.NotFoundHandler(w, r)
+		} else {
+			h.ServerErrorHandler(w, r, err)
+		}
 		return
 	}
 
-	categories, err := h.App.Post_category.Get(id)
+	c, err := h.App.Repository.Comments.Latest(id)
 	if err != nil {
-		h.App.ServerErrorHandler(w, r, err)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
-	loggedUser := h.App.AuthenticatedUser(r)
+	categories, err := h.App.Repository.Post_Category.Get(id)
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	loggedUser := auth.AuthenticatedUser(r)
 	if loggedUser != nil {
-		reacted, err := h.App.Post_reactions.Get(strconv.Itoa(id), strconv.Itoa(loggedUser.ID))
+		reacted, err := h.App.Repository.Post_Reactions.Get(id, loggedUser.ID)
 		if err != nil {
-			h.App.ServerErrorHandler(w, r, err)
+			h.ServerErrorHandler(w, r, err)
 			return
 		}
 
 		s.ReactedByUser = reacted
 
 		for _, comment := range c {
-			reacted, err := h.App.Comment_reactions.Get(strconv.Itoa(comment.ID), strconv.Itoa(loggedUser.ID))
+			reacted, err := h.App.Repository.Comment_Reactions.Get(comment.ID, loggedUser.ID)
 			if err != nil {
-				h.App.ServerErrorHandler(w, r, err)
+				h.ServerErrorHandler(w, r, err)
 				return
 			}
 
@@ -156,9 +194,14 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.App.Render(w, r, "show_page.html", &config.TemplateData{
-		Post:        s,
-		Comments:    c,
-		PCRelations: categories,
+	err = h.App.Render(w, r, &tmpldata.TemplateData{
+		TemplateName: "show_page.html",
+		Post:         s,
+		Comments:     c,
+		PCRelations:  categories,
 	})
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
 }

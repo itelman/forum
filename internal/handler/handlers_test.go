@@ -10,7 +10,7 @@ import (
 var handlers = MockHandlers()
 
 func TestShowPosts(t *testing.T) {
-	handlers.App.Posts.Insert("1", "title", "content")
+	handlers.App.Repository.Posts.Insert(1, "title", "content")
 
 	tests := []*struct {
 		name     string

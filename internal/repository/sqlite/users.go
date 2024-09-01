@@ -13,6 +13,10 @@ type UserModel struct {
 	DB *sql.DB
 }
 
+func NewUserModel(db *sql.DB) *UserModel {
+	return &UserModel{db}
+}
+
 func (m *UserModel) Insert(name, email, password string) error {
 	name = strings.ToLower(name)
 	password = strings.ToLower(password)

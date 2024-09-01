@@ -26,9 +26,7 @@
         </li>
         <li>
             {{if .AuthenticatedUser}}
-            <form class="menuItem" action="/user/logout">
-                <button>Log Out ({{.AuthenticatedUser.Name}})</button>
-            </form>
+            <a class="menuItem logout" href="/user/logout">Log Out ({{.AuthenticatedUser.Name}})</a>
             {{else}}
             <a class="menuItem" href="/user/signup">Sign Up</a>
             <a class="menuItem" href="/user/login">Sign In</a>

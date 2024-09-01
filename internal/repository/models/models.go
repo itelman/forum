@@ -20,7 +20,7 @@ type Post struct {
 	Created       time.Time
 	Likes         int
 	Dislikes      int
-	ReactedByUser string
+	ReactedByUser int
 }
 
 type User struct {
@@ -40,7 +40,7 @@ type Comment struct {
 	Created       time.Time
 	Likes         int
 	Dislikes      int
-	ReactedByUser string
+	ReactedByUser int
 }
 
 type Category struct {

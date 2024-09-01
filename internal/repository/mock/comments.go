@@ -12,8 +12,12 @@ func NewCommentModel() *CommentModel {
 	return &CommentModel{make([]*models.Comment, 0)}
 }
 
-func (m *CommentModel) Insert(post_id, user_id, content string) error {
+func (m *CommentModel) Insert(post_id, user_id int, content string) error {
 	return nil
+}
+
+func (m *CommentModel) Get(id int) (*models.Comment, error) {
+	return &models.Comment{}, nil
 }
 
 func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {

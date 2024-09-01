@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"forum/internal/repository/models"
 	"net/url"
-	"strings"
 )
 
 type PostModel struct {
 	DB *sql.DB
 }
 
-func (m *PostModel) Insert(user_id, title, content string) (int, error) {
-	title = strings.TrimSpace(title)
+func NewPostModel(db *sql.DB) *PostModel {
+	return &PostModel{db}
+}
 
+func (m *PostModel) Insert(user_id int, title, content string) (int, error) {
 	stmt := `INSERT INTO posts (user_id, title, content) VALUES(?, ?, ?)`
 	result, err := m.DB.Exec(stmt, user_id, title, content)
 	if err != nil {
@@ -132,7 +133,7 @@ func (m *PostModel) Filter(user_id int, form url.Values, FilterByLiked func(int,
 }
 
 func (m *PostModel) FilterByCreated(post_user_id, user_id int, val string) bool {
-	if len(val) == 0 || user_id == -1 {
+	if len(val) == 0 || val == "0" || user_id == -1 {
 		return true
 	}
 
