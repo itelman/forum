@@ -11,8 +11,22 @@
         <span>{{.ID}}</span>
         <p>Author: {{.Username}}</p>
         <p>Categories: {{range $td.PCRelations}}[{{.}}] {{end}}</p>
+
+        {{if and ($td.AuthenticatedUser) (eq $td.AuthenticatedUser.ID .UserID)}}
+        <a class="button" href="/post/edit?id={{.ID}}">Edit</a>
+        <a class="button" onclick="confirmPostDel('{{.ID}}')">Remove</a>
+        {{end}}
     </div>
-    <pre><code>{{.Content}}</code></pre>
+
+    <div style="border-top: 1px solid #E4E5E7; border-bottom: 1px solid #E4E5E7;">
+        <pre><code>{{.Content}}</code></pre>
+
+        {{with $td.Image}}
+        <img src="{{.Path}}" alt="post image"
+            style="max-width: 500px; max-height: 500px; display: block; margin-left: auto; margin-right: auto;">
+        {{end}}
+    </div>
+
     <div class="metadata">
         <div class="reaction-container">
             {{if $td.AuthenticatedUser}}
@@ -127,7 +141,11 @@
 
             <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
         </div>
-        <br>
+        
+        {{if and ($td.AuthenticatedUser) (eq $td.AuthenticatedUser.ID .UserID)}}
+        <a class="button" href="/post/comment/edit?id={{.ID}}">Edit</a>
+        <a class="button" onclick="confirmCommentDel('{{.ID}}')">Remove</a>
+        {{end}}
 
         <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
     </div>
@@ -136,5 +154,19 @@
 {{else}}
 <p class="comment-info">No Comments Yet!</p>
 {{end}}
+
+<script>
+    function confirmPostDel(id) {
+        if (confirm("Are you sure you want to remove this post?")) {
+            window.location.href = `/post/delete?id=${id}`;
+        }
+    }
+
+    function confirmCommentDel(id) {
+        if (confirm("Are you sure you want to remove this comment?")) {
+            window.location.href = `/post/comment/delete?id=${id}`;
+        }
+    }
+</script>
 
 {{end}}

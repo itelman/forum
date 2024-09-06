@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"forum/internal/service/auth"
 	"net/http"
 	"sync"
 	"time"
@@ -16,7 +17,9 @@ type SessionStore struct {
 
 type Session struct {
 	Flash       string
+	CSRFToken   string
 	UserID      int
+	AuthData    *auth.AuthData
 	LastRequest time.Time
 	Active      bool
 }
@@ -37,9 +40,11 @@ func (s *SessionStore) GetSessionIDFromRequest(w http.ResponseWriter, r *http.Re
 				return "", createErr
 			}
 			http.SetCookie(w, &http.Cookie{
-				Name:  "session_id",
-				Value: newSessionID,
-				Path:  "/",
+				Name:     "session_id",
+				Value:    newSessionID,
+				Path:     "/",
+				Secure:   true,
+				HttpOnly: true,
 			})
 			return newSessionID, nil
 		}
@@ -57,98 +62,98 @@ func (s *SessionStore) PutSessionData(sessionID string, key string, value interf
 
 	if key == "flash" {
 		sessionData.Flash = value.(string)
-	} else if key == "userID" {
-		sessionData.UserID = value.(int)
+	} else if key == "authData" {
+		sessionData.AuthData = value.(*auth.AuthData)
+	} else if key == "csrf_token" {
+		sessionData.CSRFToken = value.(string)
 	}
 
-	if key == "userID" {
-		sessionData.LastRequest = time.Now()
-	}
-
-	s.PutSession(sessionID, sessionData)
+	s.SessionMutex.Lock()
+	s.Store[sessionID] = sessionData
+	s.SessionMutex.Unlock()
 }
 
 func (s *SessionStore) CreateNewSession(userID ...int) (string, error) {
-	s.SessionMutex.Lock()
-	defer s.SessionMutex.Unlock()
-
 	sessionID, err := uuid.NewV4()
 	if err != nil {
 		return "", err
 	}
 	sessionIDStr := sessionID.String()
 
-	if s.Store == nil {
-		s.Store = make(map[string]*Session)
-	}
+	s.SessionMutex.Lock()
 
 	s.Store[sessionIDStr] = &Session{Active: true}
-	if s.ActiveSessions == nil {
-		s.ActiveSessions = make(map[int]string)
-	}
+
 	if len(userID) > 0 {
+		s.Store[sessionIDStr].UserID = userID[0]
+		s.Store[sessionIDStr].LastRequest = time.Now()
 		s.ActiveSessions[userID[0]] = sessionIDStr
 	}
+
+	s.SessionMutex.Unlock()
 
 	return sessionIDStr, nil
 }
 
-func (s *SessionStore) GetSession(sessionID string) *Session {
-	sessionData, exists := s.Store[sessionID]
-	if !exists {
-		return &Session{Active: true}
+func (s *SessionStore) NewSessionID() (string, error) {
+	sessionID, err := uuid.NewV4()
+	if err != nil {
+		return "", err
 	}
-	return sessionData
+
+	return sessionID.String(), nil
 }
 
-func (s *SessionStore) PutSession(sessionID string, data *Session) {
-	s.Store[sessionID] = data
+func (s *SessionStore) GetSession(sessionID string) *Session {
+	s.SessionMutex.Lock()
+	sessionData, exists := s.Store[sessionID]
+	s.SessionMutex.Unlock()
+
+	if !exists {
+		return nil
+	}
+
+	return sessionData
 }
 
 func (s *SessionStore) DeleteSession(sessionID string) {
 	s.SessionMutex.Lock()
 	defer s.SessionMutex.Unlock()
 
+	if _, exists := s.Store[sessionID]; exists {
+		delete(s.ActiveSessions, s.Store[sessionID].UserID)
+	}
+
 	delete(s.Store, sessionID)
 }
 
 func (s *SessionStore) PopSessionFlash(sessionID string) string {
+	s.SessionMutex.Lock()
+	defer s.SessionMutex.Unlock()
+
 	sessionData, exists := s.Store[sessionID]
 	if !exists {
 		return ""
 	}
 
 	flash := sessionData.Flash
-	sessionData.Flash = ""
-
-	if sessionData.Flash == "" && sessionData.UserID <= 0 {
-		delete(s.Store, sessionID)
-	}
+	s.Store[sessionID].Flash = ""
 
 	return flash
 }
 
-func (s *SessionStore) GetSessionUserID(sessionID string) int {
-	sessionData, exists := s.Store[sessionID]
-	if !exists {
-		return -1
-	}
-
-	userID := sessionData.UserID
-
-	return userID
-}
-
 func (s *SessionStore) UpdateSessionLastReq(sessionID string) {
+	s.SessionMutex.Lock()
 	s.Store[sessionID].LastRequest = time.Now()
+	s.SessionMutex.Unlock()
 }
 
 func (s *SessionStore) DisableSession(sessionID string) {
 	s.SessionMutex.Lock()
-	defer s.SessionMutex.Unlock()
-
 	s.Store[sessionID].Active = false
-	delete(s.ActiveSessions, s.GetSessionUserID(sessionID))
+
+	delete(s.ActiveSessions, s.Store[sessionID].UserID)
+	s.SessionMutex.Unlock()
 }
 
 func (s *SessionStore) GetSessionByUserID(userID int) (string, bool) {

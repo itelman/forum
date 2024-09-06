@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"forum/internal/service/auth"
 	"forum/internal/service/tmpldata"
+	"forum/pkg/csrf"
 	"net/http"
 )
 
@@ -20,12 +21,33 @@ func (app *Application) Render(w http.ResponseWriter, r *http.Request, td *tmpld
 	if err != nil {
 		return err
 	}
-	session := sesStore.GetSession(sessionID)
 
 	td.AddDefaultData(auth.AuthenticatedUser(r), sesStore.PopSessionFlash(sessionID))
 
-	if !session.Active {
+	csrfToken, err := csrf.NewToken()
+	if err != nil {
+		return err
+	}
+	td.CSRFToken = csrfToken
+	sesStore.PutSessionData(sessionID, "csrf_token", td.CSRFToken)
+
+	session := sesStore.GetSession(sessionID)
+	if session != nil && !session.Active {
 		sesStore.DeleteSession(sessionID)
+
+		newSesID, err := sesStore.NewSessionID()
+		if err != nil {
+			return err
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    newSesID,
+			Path:     "/",
+			Secure:   true,
+			HttpOnly: true,
+			// MaxAge: int(time.Duration(h.App.CookieLimit).Seconds()),
+		})
 	}
 
 	buf := new(bytes.Buffer)

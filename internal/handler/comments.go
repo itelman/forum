@@ -49,7 +49,7 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	if !form.Valid() {
 		sesStore.PutSessionData(sessionID, "flash", "Please type something into the comments section.")
-		http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusMovedPermanently)
 		return
 	}
 
@@ -66,5 +66,5 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sesStore.PutSessionData(sessionID, "flash", "Comment successfully created!")
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusMovedPermanently)
 }

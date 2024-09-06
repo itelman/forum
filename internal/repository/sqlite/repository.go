@@ -14,5 +14,6 @@ func NewRepository(db *sql.DB) *repository.Repository {
 		Post_Category:     NewPostCategoryModel(db),
 		Post_Reactions:    NewPostReactionModel(db),
 		Comment_Reactions: NewCommentReactionModel(db),
+		Images:            NewImageModel(db),
 	}
 }

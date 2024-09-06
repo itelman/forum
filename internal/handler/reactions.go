@@ -72,7 +72,7 @@ func (h *Handlers) HandlePostReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusMovedPermanently)
 }
 
 func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request) {
@@ -149,5 +149,5 @@ func (h *Handlers) HandleCommentReaction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", comment.PostID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", comment.PostID), http.StatusMovedPermanently)
 }

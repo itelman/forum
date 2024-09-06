@@ -2,7 +2,9 @@ package forms
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -107,4 +109,20 @@ func (f *Form) ProvidedAtLeastOne(fields ...string) bool {
 	}
 
 	return false
+}
+
+func (f *Form) ImgMaxSize(handler *multipart.FileHeader, d int) {
+	if handler.Size > int64(d) {
+		f.Errors.Add("image", fmt.Sprintf("Max size exceeded (max %d MB)", d/1048576))
+	}
+}
+
+func (f *Form) ImgExtension(handler *multipart.FileHeader, exts ...string) {
+	for _, ext := range exts {
+		if filepath.Ext(handler.Filename) == ext {
+			return
+		}
+	}
+
+	f.Errors.Add("image", fmt.Sprintf("File extension should be one of the following: %s", exts))
 }

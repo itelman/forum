@@ -1,0 +1,34 @@
+{{template "base" .}}
+
+{{define "title"}}Sign Up{{end}}
+
+{{define "body"}}
+<form action="/user/signup/provider" method="POST" novalidate>
+    {{with .Form}}
+    {{with .Errors.Get "generic"}}
+    <div class="error">{{.}}</div>
+    {{end}}
+
+    <div>
+        <label>Username:</label>
+        {{with .Errors.Get "name"}}
+        <label class="error">{{.}}</label>
+        {{end}}
+
+        <input type="text" name="name" value='{{.Get "name"}}'>
+    </div>
+    
+    {{if .Get "email"}}
+    <div>
+        <label>Email:</label>
+
+        <input type="email" name="email" value='{{.Get "email"}}' readonly>
+    </div>
+    {{end}}
+
+    <div class="">
+        <input type="submit" value="Sign Up">
+    </div>
+    {{end}}
+</form>
+{{end}}

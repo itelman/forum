@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	ErrBadGateway           = errors.New("models: error encountered from another server")
 	ErrNoRecord             = errors.New("models: no matching record found")
 	ErrInvalidCredentials   = errors.New("models: invalid credentials")
 	ErrDuplicateNameOrEmail = errors.New("UNIQUE constraint failed: users.name or users.email")
@@ -20,6 +21,7 @@ type Post struct {
 	Created       time.Time
 	Likes         int
 	Dislikes      int
+	Edited        time.Time
 	ReactedByUser int
 }
 
@@ -40,6 +42,7 @@ type Comment struct {
 	Created       time.Time
 	Likes         int
 	Dislikes      int
+	Edited        time.Time
 	ReactedByUser int
 }
 
@@ -58,4 +61,25 @@ type PostCategory struct {
 	PostID       int
 	CategoryName string
 	Created      time.Time
+}
+
+type PostReaction struct {
+	ID       int
+	PostID   int
+	UserID   int
+	Username string
+	IsLike   int
+	Created  time.Time
+}
+
+type Posts_Comments struct {
+	Post     *Post
+	Comments []*Comment
+}
+
+type Image struct {
+	ID       int
+	PostID   int
+	Path     string
+	Uploaded time.Time
 }

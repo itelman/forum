@@ -29,17 +29,43 @@ func (m *PostModel) Insert(user_id int, title, content string) (int, error) {
 }
 
 func (m *PostModel) Get(id int) (*models.Post, error) {
-	stmt := `SELECT posts.id, users.name, posts.title, posts.content, posts.created, posts.likes, posts.dislikes FROM posts INNER JOIN users ON posts.user_id = users.id WHERE posts.id = ?`
+	stmt := `SELECT posts.id, users.id, users.name, posts.title, posts.content, posts.created, posts.likes, posts.dislikes FROM posts INNER JOIN users ON posts.user_id = users.id WHERE posts.id = ?`
 	row := m.DB.QueryRow(stmt, id)
 
 	s := &models.Post{}
-	err := row.Scan(&s.ID, &s.Username, &s.Title, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+	err := row.Scan(&s.ID, &s.UserID, &s.Username, &s.Title, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
 	if err == sql.ErrNoRows {
 		return nil, models.ErrNoRecord
 	} else if err != nil {
 		return nil, err
 	}
 	return s, nil
+}
+
+func (m *PostModel) Delete(id int) error {
+	stmt := `DELETE FROM posts WHERE id = ?`
+
+	_, err := m.DB.Exec(stmt, id)
+	if err == sql.ErrNoRows {
+		return models.ErrNoRecord
+	} else if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (m *PostModel) Update(id int, title, content string) error {
+	stmt := `UPDATE posts SET title = $1, content = $2, edited = CURRENT_TIMESTAMP WHERE id = $3`
+	_, err := m.DB.Exec(stmt, title, content, id)
+
+	if err == sql.ErrNoRows {
+		return models.ErrNoRecord
+	} else if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (m *PostModel) Latest() ([]*models.Post, error) {
@@ -53,26 +79,13 @@ func (m *PostModel) Latest() ([]*models.Post, error) {
 	posts := []*models.Post{}
 
 	for rows.Next() {
-		s := &models.Post{}
-		var likes sql.NullInt64
-		var dislikes sql.NullInt64
-		if likes.Valid {
-			s.Likes = int(likes.Int64)
-		} else {
-			s.Likes = 0
-		}
+		s := models.Post{}
 
-		if dislikes.Valid {
-			s.Dislikes = int(dislikes.Int64)
-		} else {
-			s.Dislikes = 0
-		}
 		err := rows.Scan(&s.ID, &s.UserID, &s.Username, &s.Title, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
 		if err != nil {
 			return nil, err
 		}
-		posts = append(posts, s)
-
+		posts = append(posts, &s)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
@@ -142,4 +155,71 @@ func (m *PostModel) FilterByCreated(post_user_id, user_id int, val string) bool 
 	}
 
 	return false
+}
+
+func (m *PostModel) Created(id int) ([]*models.Posts_Comments, error) {
+	stmt := `SELECT posts.id, users.id, users.name, posts.title, posts.content, posts.created, posts.likes, posts.dislikes FROM posts INNER JOIN users ON posts.user_id = users.id WHERE posts.user_id = ? ORDER BY posts.created DESC`
+	rows, err := m.DB.Query(stmt, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	posts := []*models.Posts_Comments{}
+
+	for rows.Next() {
+		s := models.Post{}
+
+		err := rows.Scan(&s.ID, &s.UserID, &s.Username, &s.Title, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, &models.Posts_Comments{&s, nil})
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+func (m *PostModel) Reacted(id int, GetReactionsByUser func(int) ([]*models.PostReaction, error)) ([]*models.Posts_Comments, error) {
+	results := []*models.Posts_Comments{}
+
+	reactions, err := GetReactionsByUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, reaction := range reactions {
+		post, err := m.Get(reaction.PostID)
+		if err != nil {
+			return nil, err
+		}
+
+		post.ReactedByUser = reaction.IsLike
+
+		results = append(results, &models.Posts_Comments{post, nil})
+	}
+
+	return results, nil
+}
+
+func (m *PostModel) Commented(id int, GetDistinctCommentsByUser func(int) ([]*models.Comment, error)) ([]*models.Posts_Comments, error) {
+	results := []*models.Posts_Comments{}
+
+	comments, err := GetDistinctCommentsByUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, comment := range comments {
+		post, err := m.Get(comment.PostID)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, &models.Posts_Comments{post, nil})
+	}
+
+	return results, nil
 }

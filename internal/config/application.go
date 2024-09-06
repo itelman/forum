@@ -3,15 +3,12 @@ package config
 import (
 	"database/sql"
 	"forum/internal/repository"
-	"forum/internal/repository/mock"
 	"forum/internal/repository/sqlite"
 	"forum/pkg/sessions"
 	"forum/pkg/tmplcache"
 	"html/template"
 	"log"
 	"time"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Application struct {
@@ -31,13 +28,5 @@ func NewApplication(infoLog *log.Logger, errorLog *log.Logger, db *sql.DB, templ
 		SessionStore:  sessions.NewSessionStore(),
 		TemplateCache: templateCache,
 		Repository:    sqlite.NewRepository(db),
-	}
-}
-
-func MockApplication(errorLog *log.Logger, templateCache map[string]*template.Template) *Application {
-	return &Application{
-		ErrorLog:      errorLog,
-		TemplateCache: templateCache,
-		Repository:    mock.NewRepository(),
 	}
 }

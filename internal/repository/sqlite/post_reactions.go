@@ -94,6 +94,31 @@ func (m *PostReactionModel) Dislikes(post_id int) (int, error) {
 	return count, nil
 }
 
+func (m *PostReactionModel) LatestIgnoreUser(post_id, user_id int) ([]*models.PostReaction, error) {
+	stmt := `SELECT post_reactions.id, post_reactions.post_id, users.id, users.name, post_reactions.is_like, post_reactions.created FROM post_reactions INNER JOIN users ON post_reactions.user_id = users.id WHERE post_reactions.post_id = ? AND post_reactions.user_id <> ? ORDER BY post_reactions.created DESC`
+	rows, err := m.DB.Query(stmt, post_id, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	post_reactions := []*models.PostReaction{}
+
+	for rows.Next() {
+		s := models.PostReaction{}
+		err := rows.Scan(&s.ID, &s.PostID, &s.UserID, &s.Username, &s.IsLike, &s.Created)
+		if err != nil {
+			return nil, err
+		}
+		post_reactions = append(post_reactions, &s)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return post_reactions, nil
+}
+
 func (m *PostReactionModel) FilterByLiked(post_id, user_id int, val string) (bool, error) {
 	if len(val) == 0 || val == "0" || user_id == -1 {
 		return true, nil
@@ -112,4 +137,29 @@ func (m *PostReactionModel) FilterByLiked(post_id, user_id int, val string) (boo
 	}
 
 	return false, nil
+}
+
+func (m *PostReactionModel) GetReactionsByUser(user_id int) ([]*models.PostReaction, error) {
+	stmt := `SELECT id, post_id, user_id, is_like, created FROM post_reactions WHERE user_id = ? ORDER BY created DESC`
+	rows, err := m.DB.Query(stmt, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	post_reactions := []*models.PostReaction{}
+
+	for rows.Next() {
+		s := models.PostReaction{}
+		err := rows.Scan(&s.ID, &s.PostID, &s.UserID, &s.IsLike, &s.Created)
+		if err != nil {
+			return nil, err
+		}
+		post_reactions = append(post_reactions, &s)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return post_reactions, nil
 }

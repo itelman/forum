@@ -3,7 +3,11 @@
 {{define "title"}}Sign Up{{end}}
 
 {{define "body"}}
+{{$td := .}}
 <form action="/user/signup" method="POST" novalidate>
+    <!-- Include the CSRF token -->
+    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+
     {{with .Form}}
     {{with .Errors.Get "generic"}}
     <div class="error">{{.}}</div>
@@ -39,6 +43,16 @@
     </div>
     <div class="">
         <input type="submit" value="Sign Up">
+    </div>
+
+    <div>
+        <a class="button"
+            href='https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cloud-platform openid&response_type=code&redirect_uri=https://forum-099y.onrender.com/auth/google/callback&client_id={{$td.GoogleID}}'>Sign
+            Up with Google</a>
+    </div>
+
+    <div>
+        <a class="button" href="/auth/github">Sign Up with Github</a>
     </div>
     {{end}}
 </form>

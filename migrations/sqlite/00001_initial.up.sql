@@ -4,9 +4,11 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
-    hashed_password TEXT NOT NULL,
-    created DATETIME DEFAULT CURRENT_TIMESTAMP
+    email TEXT UNIQUE,
+    hashed_password TEXT,
+    created DATETIME DEFAULT CURRENT_TIMESTAMP,
+    github_id INTEGER UNIQUE,
+    google_id TEXT UNIQUE
 );
 
 -- Create a `posts` table.
@@ -18,7 +20,8 @@ CREATE TABLE IF NOT EXISTS posts (
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    edited DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -29,8 +32,9 @@ CREATE TABLE IF NOT EXISTS comments (
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
+    edited DATETIME,
     FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -60,7 +64,7 @@ CREATE TABLE IF NOT EXISTS post_reactions (
     is_like INTEGER NOT NULL,
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS comment_reactions (
@@ -70,5 +74,13 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
     is_like INTEGER NOT NULL,
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (comment_id) REFERENCES comments (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    path TEXT NOT NULL,
+    uploaded DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
 );

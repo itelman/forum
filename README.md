@@ -1,5 +1,12 @@
 ## forum
 
+### Features (What's Inside):
+
+- Image uploading feature when creating posts.
+- GitHub and Google OAuth to register and authenticate users.
+- TLS protocol to establish a secure HTTPS connection to the server.
+- Rate limiting and protection from XSS, Clickjacking and CSRF attacks.
+
 ### Objectives
 
 This project consists in creating a web forum that allows :

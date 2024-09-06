@@ -42,9 +42,72 @@ func (m *CommentModel) Get(id int) (*models.Comment, error) {
 	return s, nil
 }
 
+func (m *CommentModel) Delete(id int) (int, error) {
+	var post_id int
+	stmt := `SELECT post_id FROM comments WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&post_id)
+	if err == sql.ErrNoRows {
+		return -1, models.ErrNoRecord
+	} else if err != nil {
+		return -1, err
+	}
+
+	stmt = `DELETE FROM comments WHERE id = ?`
+	_, err = m.DB.Exec(stmt, id)
+	if err != nil {
+		return -1, err
+	}
+
+	return post_id, err
+}
+
+func (m *CommentModel) Update(id int, content string) error {
+	var post_id int
+	stmt := `SELECT post_id FROM comments WHERE id = ?`
+	err := m.DB.QueryRow(stmt, id).Scan(&post_id)
+	if err == sql.ErrNoRows {
+		return models.ErrNoRecord
+	} else if err != nil {
+		return err
+	}
+
+	stmt = `UPDATE comments SET content = $1, edited = CURRENT_TIMESTAMP WHERE id = $2`
+	_, err = m.DB.Exec(stmt, content, id)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
 func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {
 	stmt := `SELECT comments.id, users.id, comments.post_id, users.name, comments.content, comments.created, comments.likes, comments.dislikes FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? ORDER BY comments.created DESC`
 	rows, err := m.DB.Query(stmt, post_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	comments := []*models.Comment{}
+
+	for rows.Next() {
+		s := &models.Comment{}
+		err := rows.Scan(&s.ID, &s.UserID, &s.PostID, &s.Username, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, s)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return comments, nil
+}
+
+func (m *CommentModel) LatestIgnoreUser(post_id, user_id int) ([]*models.Comment, error) {
+	stmt := `SELECT comments.id, users.id, comments.post_id, users.name, comments.content, comments.created, comments.likes, comments.dislikes FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? AND comments.user_id <> ? ORDER BY comments.created DESC`
+	rows, err := m.DB.Query(stmt, post_id, user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -89,4 +152,53 @@ func (m *CommentModel) UpdateReactions(id int, Likes func(int) (int, error), Dis
 	}
 
 	return nil
+}
+
+func (m *CommentModel) GetDistinctCommentsByUser(user_id int) ([]*models.Comment, error) {
+	stmt := `SELECT id, post_id, user_id, content, created, likes, dislikes FROM comments WHERE user_id = ? GROUP BY post_id ORDER BY created DESC`
+	rows, err := m.DB.Query(stmt, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	comments := []*models.Comment{}
+
+	for rows.Next() {
+		s := models.Comment{}
+		err := rows.Scan(&s.ID, &s.PostID, &s.UserID, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, &s)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return comments, nil
+}
+
+func (m *CommentModel) GetByUserForPost(post_id, user_id int) ([]*models.Comment, error) {
+	stmt := `SELECT comments.id, users.id, comments.post_id, users.name, comments.content, comments.created, comments.likes, comments.dislikes FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.post_id = ? AND comments.user_id = ? ORDER BY comments.created DESC`
+	rows, err := m.DB.Query(stmt, post_id, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	comments := []*models.Comment{}
+
+	for rows.Next() {
+		s := models.Comment{}
+		err := rows.Scan(&s.ID, &s.UserID, &s.PostID, &s.Username, &s.Content, &s.Created, &s.Likes, &s.Dislikes)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, &s)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return comments, nil
 }

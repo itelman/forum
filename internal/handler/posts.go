@@ -6,7 +6,10 @@ import (
 	"forum/internal/service/auth"
 	"forum/internal/service/tmpldata"
 	"forum/pkg/forms"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 )
@@ -59,11 +62,31 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	loggedUser := auth.AuthenticatedUser(r)
 
-	err := r.ParseForm()
+	c, err := h.App.Repository.Categories.Latest()
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
+
+	err = r.ParseMultipartForm(int64(1024 * 20))
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	sesStore := h.App.SessionStore
+
+	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if sesStore.GetSession(sessionID).CSRFToken != r.PostFormValue("csrf_token") {
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
+		return
+	}
+
 	form := forms.New(r.PostForm)
 	form.Required("title", "content", "categories")
 
@@ -71,10 +94,17 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 	form.MaxLength("title", 50)
 	form.MatchesPattern("title", regexp.MustCompile(`^\S.*\S$`))
 
-	c, err := h.App.Repository.Categories.Latest()
-	if err != nil {
+	file, handler, err := r.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
 		h.ServerErrorHandler(w, r, err)
 		return
+	}
+
+	if !(file == nil || handler == nil) {
+		defer file.Close()
+
+		form.ImgMaxSize(handler, 1048576*20)
+		form.ImgExtension(handler, ".jpg", ".jpeg", ".png", ".gif")
 	}
 
 	if !form.Valid() {
@@ -87,6 +117,7 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 			h.ServerErrorHandler(w, r, err)
 			return
 		}
+
 		return
 	}
 
@@ -120,16 +151,34 @@ func (h *Handlers) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sesStore := h.App.SessionStore
+	if !(file == nil || handler == nil) {
+		filePath := fmt.Sprintf("./uploads/%s", handler.Filename)
 
-	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
-	if err != nil {
-		h.ServerErrorHandler(w, r, err)
-		return
+		err = os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+		if err != nil {
+			h.ServerErrorHandler(w, r, err)
+			return
+		}
+
+		f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			h.ServerErrorHandler(w, r, err)
+			return
+		}
+		defer f.Close()
+		io.Copy(f, file)
+
+		filePath_db := fmt.Sprintf("/uploads/%s", handler.Filename)
+		err = h.App.Repository.Images.Insert(id, filePath_db)
+		if err != nil {
+			h.ServerErrorHandler(w, r, err)
+			return
+		}
 	}
+
 	sesStore.PutSessionData(sessionID, "flash", "Post successfully created!")
 
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", id), http.StatusMovedPermanently)
 }
 
 func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
@@ -152,12 +201,11 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s, err := h.App.Repository.Posts.Get(id)
-	if err != nil {
-		if err == models.ErrNoRecord {
-			h.NotFoundHandler(w, r)
-		} else {
-			h.ServerErrorHandler(w, r, err)
-		}
+	if err == models.ErrNoRecord {
+		h.NotFoundHandler(w, r)
+		return
+	} else if err != nil {
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
@@ -169,6 +217,12 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 
 	categories, err := h.App.Repository.Post_Category.Get(id)
 	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	image, err := h.App.Repository.Images.Get(id)
+	if err != nil && err != models.ErrNoRecord {
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
@@ -199,6 +253,7 @@ func (h *Handlers) ShowPost(w http.ResponseWriter, r *http.Request) {
 		Post:         s,
 		Comments:     c,
 		PCRelations:  categories,
+		Image:        image,
 	})
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)

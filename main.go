@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"forum/internal/config"
 	"forum/internal/handler"
 	"forum/internal/router"
@@ -24,7 +25,7 @@ func main() {
 	}
 	defer f.Close()
 
-	db, err := store.NewSqlite("./storage/storage.db?parseTime=true")
+	db, err := store.NewSQL("sqlite3", "./storage/storage.db?parseTime=true")
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -43,10 +44,19 @@ func main() {
 
 	handlers := &handler.Handlers{App: app}
 
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences: []tls.CurveID{
+			tls.X25519,
+			tls.CurveP256,
+		},
+	}
+
 	srv := &http.Server{
 		Addr:         ":8080",
 		ErrorLog:     errorLog,
 		Handler:      router.Router(handlers),
+		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

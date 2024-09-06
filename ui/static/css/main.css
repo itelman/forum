@@ -147,11 +147,19 @@ input[type="submit"] {
     background-color: #406288;
     border-radius: 3px;
     color: #FFFFFF;
-    padding: 18px 27px;
     border: none;
     display: inline-block;
     margin-top: 18px;
     font-weight: 700;
+}
+
+input[type="submit"] {
+    padding: 18px 27px;
+}
+
+a.button {
+    padding: 14px 27px;
+    text-decoration: none;
 }
 
 a.button:hover,
@@ -236,14 +244,13 @@ a.logout:hover {
 
 .post {
     background-color: #FFFFFF;
-    border: 1px solid #E4E5E7;
+    border: 3px solid #E4E5E7;
     border-radius: 3px;
+    margin-bottom: 25px;
 }
 
 .post pre {
     padding: 18px;
-    border-top: 1px solid #E4E5E7;
-    border-bottom: 1px solid #E4E5E7;
 }
 
 .post .metadata {

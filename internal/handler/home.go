@@ -79,7 +79,7 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 	form.RequiredAtLeastOne("categories", "created", "liked")
 	if !form.Valid() {
 		sesStore.PutSessionData(sessionID, "flash", "Please select at least one filter.")
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h *Handlers) Results(w http.ResponseWriter, r *http.Request) {
 	loggedUser := auth.AuthenticatedUser(r)
 	if loggedUser == nil && form.ProvidedAtLeastOne("created", "liked") {
 		sesStore.PutSessionData(sessionID, "flash", "Your session has expired. Please sign in again.")
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
 

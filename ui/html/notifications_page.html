@@ -1,0 +1,57 @@
+{{template "base" .}}
+{{define "title"}}Notifications{{end}}
+{{define "body"}}
+<h2>Notifications</h2>
+
+<form action="/user/notifications">
+    <div class="category">
+        <fieldset class="categories-fieldset">
+            <legend>Filters:</legend>
+
+            <div class="categories-conatiner-inner">
+                <input type="radio" id="comments" name="filter" value="1">
+                <label for="comments">Comments</label>
+
+                <input type="radio" id="reactions" name="filter" value="2">
+                <label for="reactions">Reactions</label>
+            </div>
+
+            <div class="signup-page-form-submit">
+                <input type="submit" value="Show">
+            </div>
+        </fieldset>
+    </div>
+</form>
+
+<table id="post-table">
+    <tr>
+        <th>Notification</th>
+        <th>Created</th>
+        <th>Post</th>
+    </tr>
+    {{if .Comments}}
+
+    {{range .Comments}}
+    <tr class="post-tr">
+        <td>{{.Username}} has left a comment on your post.</td>
+        <td>{{humanDate .Created}}</td>
+        <td><a href='/post?id={{.PostID}}'>View</a></td>
+    </tr>
+    {{end}}
+
+    {{else if .Post_Reactions}}
+
+    {{range .Post_Reactions}}
+    <tr class="post-tr">
+        <td>{{.Username}} has left a {{if eq .IsLike 1}} like {{else}} dislike {{end}} on your post.</td>
+        <td>{{humanDate .Created}}</td>
+        <td><a href='/post?id={{.PostID}}'>View</a></td>
+    </tr>
+    {{end}}
+
+    {{else}}
+    <p class="comment-info">No Notifications Yet!</p>
+    {{end}}
+</table>
+
+{{end}}

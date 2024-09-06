@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"forum/internal/repository/models"
 	"forum/internal/service/auth"
 	"forum/internal/service/tmpldata"
@@ -70,19 +69,37 @@ func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
+	sesStore := h.App.SessionStore
+	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
+
+	if auth.AuthenticatedUser(r) != nil {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
+		return
+	}
+
+	if sesStore.GetSession(sessionID).CSRFToken != r.PostFormValue("csrf_token") {
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
 	form := forms.New(r.PostForm)
 	form.Required("name", "email", "password")
 
 	form.MinLength("name", 5)
-	form.MaxLength("name", 15)
+	form.MaxLength("name", 30)
 
-	form.MinLength("email", 15)
-	form.MaxLength("email", 20)
+	form.MinLength("email", 10)
+	form.MaxLength("email", 30)
 
 	form.MinLength("password", 6)
 	form.MaxLength("password", 10)
@@ -118,21 +135,12 @@ func (h *Handlers) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else if err != nil {
-		fmt.Println(err)
-		fmt.Printf("**%s**", err)
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
-	sesStore := h.App.SessionStore
-
-	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
-	if err != nil {
-		h.ServerErrorHandler(w, r, err)
-		return
-	}
 	sesStore.PutSessionData(sessionID, "flash", "Your signup was successful. Please log in.")
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/user/login", http.StatusMovedPermanently)
 }
 
 func (h *Handlers) LoginUserForm(w http.ResponseWriter, r *http.Request) {
@@ -195,11 +203,29 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
+	sesStore := h.App.SessionStore
+	sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
+
+	if auth.AuthenticatedUser(r) != nil {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
+		return
+	}
+
+	if sesStore.GetSession(sessionID).CSRFToken != r.PostFormValue("csrf_token") {
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
 	form := forms.New(r.PostForm)
 	id, err := h.App.Repository.Users.Authenticate(form.Get("name"), form.Get("password"))
 	if err == models.ErrInvalidCredentials {
@@ -220,7 +246,7 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sesStore := h.App.SessionStore
+	sesStore.DeleteSession(sessionID)
 
 	existingSessionID, exists := sesStore.GetSessionByUserID(id)
 	if exists {
@@ -228,12 +254,11 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		sesStore.PutSessionData(existingSessionID, "flash", "Your session has expired. Please sign in again.")
 	}
 
-	sessionID, err := sesStore.CreateNewSession(id)
+	sessionID, err = sesStore.CreateNewSession(id)
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
 		return
 	}
-	sesStore.PutSessionData(sessionID, "userID", id)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "session_id",
@@ -242,7 +267,7 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		// MaxAge: int(time.Duration(h.App.CookieLimit).Seconds()),
 	})
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
@@ -251,8 +276,8 @@ func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", "GET")
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
 		h.ClientErrorHandler(w, r, http.StatusMethodNotAllowed)
 		return
 	}
@@ -265,7 +290,12 @@ func (h *Handlers) LogoutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if sesStore.GetSession(sessionID).CSRFToken != r.PostFormValue("csrf_token") {
+		h.ClientErrorHandler(w, r, http.StatusBadRequest)
+		return
+	}
+
 	sesStore.DisableSession(sessionID)
 	sesStore.PutSessionData(sessionID, "flash", "You've been logged out successfully!")
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }

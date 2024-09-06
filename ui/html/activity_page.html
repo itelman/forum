@@ -1,0 +1,72 @@
+{{template "base" .}}
+{{define "title"}}Recent Activity{{end}}
+{{define "body"}}
+<h2>Recent Activity</h2>
+
+{{if .Posts_Comments}}
+{{range .Posts_Comments}}
+{{$post := .Post}}
+{{$comments := .Comments}}
+<div style="margin-bottom: 75px;">
+    <div class="post">
+        <div class="metadata">
+            <a href='/post?id={{$post.ID}}'><strong>{{$post.Title}}</strong></a>
+            <span>{{$post.ID}}</span>
+            <p>Author: {{$post.Username}}</p>
+        </div>
+        <pre><code>{{$post.Content}}</code></pre>
+        <div class="metadata">
+            <div class="reaction-container">
+                {{if eq $post.ReactedByUser 1}}
+                <img class="like-icon" src="/static/img/like-active.svg" alt="Like">
+                {{else}}
+                <img class="like-icon" src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+                {{end}}
+                <span>{{$post.Likes}}</span>
+
+                {{if eq $post.ReactedByUser 0}}
+                <img class="dislike-icon" src="/static/img/dislike-active.svg" alt="Dislike">
+                {{else}}
+                <img class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+                {{end}}
+                <span>{{$post.Dislikes}}</span>
+            </div>
+
+            <time class="comment-posted-time">Created: {{humanDate $post.Created}}</time>
+        </div>
+    </div>
+
+    {{range $comments}}
+    <div class="comment-posted">
+        <h3 class="comment-posted-username">Author: {{.Username}}</h3>
+        <p class="comment-posted-text">{{.Content}}</p>
+        <div class="comment-posted-metadata">
+            <div class="reaction-container">
+                {{if eq .ReactedByUser 1}}
+                <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg" alt="Like">
+                {{else}}
+                <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
+                    alt="Like">
+                {{end}}
+                <span id="like-count-{{.ID}}">{{.Likes}}</span>
+
+                {{if eq .ReactedByUser 0}}
+                <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-active.svg"
+                    alt="Dislike">
+                {{else}}
+                <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
+                    alt="Dislike">
+                {{end}}
+                <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+            </div>
+
+            <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{else}}
+<p class="comment-info">No Posts Yet!</p>
+{{end}}
+{{end}}

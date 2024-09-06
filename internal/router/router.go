@@ -4,6 +4,7 @@ import (
 	"forum/internal/handler"
 	"forum/internal/service/middleware"
 	"net/http"
+	"time"
 )
 
 type routes struct {
@@ -26,9 +27,22 @@ func Router(handlers *handler.Handlers) http.Handler {
 		{"/user/signup", handlers.SignupUserForm, false},
 		{"/user/login", handlers.LoginUserForm, false},
 		{"/user/logout", handlers.LogoutUser, true},
+		{"/post/delete", handlers.DeletePost, true},
+		{"/post/edit", handlers.EditPostForm, true},
+		{"/post/comment/delete", handlers.DeleteComment, true},
+		{"/post/comment/edit", handlers.EditCommentForm, true},
+		{"/user/activity/created", handlers.ShowCreatedPosts, true},
+		{"/user/activity/reacted", handlers.ShowReactedPosts, true},
+		{"/user/activity/commented", handlers.ShowCommentedPosts, true},
+		{"/user/notifications", handlers.ShowNotifications, true},
+		{"/user/signup/provider", handlers.SignupUserProviderForm, false},
+		{"/auth/github", handlers.LoginGithub, false},
+		{"/auth/github/callback", handlers.LoginGithubCallback, false},
+		{"/auth/google", handlers.LoginGoogle, false},
+		{"/auth/google/callback", handlers.LoginGoogleCallback, false},
 	}
 
-	middleware := &middleware.Middleware{Handlers: handlers}
+	middleware := &middleware.Middleware{Handlers: handlers, Limiters: map[string]chan time.Time{}, BlockedSessions: map[string]time.Time{}}
 
 	for _, route := range routes {
 		mux.Handle(route.Path, middleware.DynamicMiddleware(route.Handler, route.RequireAuth))
@@ -36,6 +50,8 @@ func Router(handlers *handler.Handlers) http.Handler {
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads/"))))
 
 	return middleware.StandardMiddleware(mux)
 }
