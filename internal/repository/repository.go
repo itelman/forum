@@ -28,7 +28,7 @@ type Repository struct {
 	Comments interface {
 		Insert(int, int, string) error
 		Get(int) (*models.Comment, error)
-		Delete(int) (int, error)
+		Delete(int) error
 		Update(int, string) error
 		Latest(int) ([]*models.Comment, error)
 		UpdateReactions(int, func(int) (int, error), func(int) (int, error)) error

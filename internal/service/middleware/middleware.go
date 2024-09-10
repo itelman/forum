@@ -114,14 +114,14 @@ func (m *Middleware) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.Handlers.App.InfoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
 
-		sesStore := m.Handlers.App.SessionStore
+		/*sesStore := m.Handlers.App.SessionStore
 		sessionID, err := sesStore.GetSessionIDFromRequest(w, r)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 		m.Handlers.App.InfoLog.Printf("COOKIE: %#v\n", sessionID)
-		m.Handlers.App.InfoLog.Printf("SESSIONS: %v\n", sesStore.Store)
+		m.Handlers.App.InfoLog.Printf("SESSIONS: %v\n", sesStore.Store)*/
 
 		next.ServeHTTP(w, r)
 	})

@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"forum/internal/repository/models"
+	"forum/internal/service/auth"
 	"forum/internal/service/tmpldata"
 	"forum/pkg/forms"
 	"net/http"
@@ -30,6 +31,20 @@ func (h *Handlers) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post, err := h.App.Repository.Posts.Get(id)
+	if err == models.ErrNoRecord {
+		h.NotFoundHandler(w, r)
+		return
+	} else if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != post.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
+		return
+	}
+
 	err = h.App.Repository.Posts.Delete(id)
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
@@ -43,7 +58,7 @@ func (h *Handlers) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sesStore.PutSessionData(sessionID, "flash", "Post successfully removed!")
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *Handlers) EditPostForm(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +91,11 @@ func (h *Handlers) EditPostForm(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != post.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
 		return
 	}
 
@@ -119,6 +139,11 @@ func (h *Handlers) EditPost(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != post.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
 		return
 	}
 
@@ -180,7 +205,7 @@ func (h *Handlers) EditPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sesStore.PutSessionData(sessionID, "flash", "Post successfully edited!")
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", id), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", id), http.StatusSeeOther)
 }
 
 func (h *Handlers) DeleteComment(w http.ResponseWriter, r *http.Request) {
@@ -202,7 +227,21 @@ func (h *Handlers) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post_id, err := h.App.Repository.Comments.Delete(id)
+	comment, err := h.App.Repository.Comments.Get(id)
+	if err == models.ErrNoRecord {
+		h.NotFoundHandler(w, r)
+		return
+	} else if err != nil {
+		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != comment.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
+		return
+	}
+
+	err = h.App.Repository.Comments.Delete(id)
 	if err != nil {
 		h.ServerErrorHandler(w, r, err)
 		return
@@ -215,7 +254,7 @@ func (h *Handlers) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sesStore.PutSessionData(sessionID, "flash", "Comment successfully removed!")
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", post_id), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", comment.PostID), http.StatusSeeOther)
 }
 
 func (h *Handlers) EditCommentForm(w http.ResponseWriter, r *http.Request) {
@@ -248,6 +287,11 @@ func (h *Handlers) EditCommentForm(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != comment.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
 		return
 	}
 
@@ -290,6 +334,11 @@ func (h *Handlers) EditComment(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		h.ServerErrorHandler(w, r, err)
+		return
+	}
+
+	if auth.AuthenticatedUser(r).ID != comment.UserID {
+		h.ClientErrorHandler(w, r, http.StatusForbidden)
 		return
 	}
 
@@ -345,5 +394,5 @@ func (h *Handlers) EditComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sesStore.PutSessionData(sessionID, "flash", "Comment successfully edited!")
-	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", comment.PostID), http.StatusMovedPermanently)
+	http.Redirect(w, r, fmt.Sprintf("/post?id=%d", comment.PostID), http.StatusSeeOther)
 }

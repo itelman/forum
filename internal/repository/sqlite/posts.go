@@ -46,13 +46,11 @@ func (m *PostModel) Delete(id int) error {
 	stmt := `DELETE FROM posts WHERE id = ?`
 
 	_, err := m.DB.Exec(stmt, id)
-	if err == sql.ErrNoRows {
-		return models.ErrNoRecord
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 func (m *PostModel) Update(id int, title, content string) error {

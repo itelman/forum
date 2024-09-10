@@ -42,23 +42,15 @@ func (m *CommentModel) Get(id int) (*models.Comment, error) {
 	return s, nil
 }
 
-func (m *CommentModel) Delete(id int) (int, error) {
-	var post_id int
-	stmt := `SELECT post_id FROM comments WHERE id = ?`
-	err := m.DB.QueryRow(stmt, id).Scan(&post_id)
-	if err == sql.ErrNoRows {
-		return -1, models.ErrNoRecord
-	} else if err != nil {
-		return -1, err
-	}
+func (m *CommentModel) Delete(id int) error {
+	stmt := `DELETE FROM comments WHERE id = ?`
 
-	stmt = `DELETE FROM comments WHERE id = ?`
-	_, err = m.DB.Exec(stmt, id)
+	_, err := m.DB.Exec(stmt, id)
 	if err != nil {
-		return -1, err
+		return err
 	}
 
-	return post_id, err
+	return nil
 }
 
 func (m *CommentModel) Update(id int, content string) error {
