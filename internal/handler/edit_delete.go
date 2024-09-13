@@ -149,7 +149,7 @@ func (h *Handlers) EditPost(w http.ResponseWriter, r *http.Request) {
 
 	err = r.ParseForm()
 	if err != nil {
-		h.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 
@@ -344,7 +344,7 @@ func (h *Handlers) EditComment(w http.ResponseWriter, r *http.Request) {
 
 	err = r.ParseForm()
 	if err != nil {
-		h.ClientErrorHandler(w, r, http.StatusInternalServerError)
+		h.ServerErrorHandler(w, r, err)
 		return
 	}
 

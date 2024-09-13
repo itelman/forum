@@ -7,5 +7,6 @@ func NewRepository() *repository.Repository {
 		Posts:         NewPostModel(),
 		Comments:      NewCommentModel(),
 		Post_Category: NewPostCategoryModel(),
+		Images:        NewImageModel(),
 	}
 }

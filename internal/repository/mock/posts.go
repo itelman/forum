@@ -30,6 +30,14 @@ func (m *PostModel) Get(id int) (*models.Post, error) {
 	return post, nil
 }
 
+func (m *PostModel) Delete(id int) error {
+	return nil
+}
+
+func (m *PostModel) Update(id int, title, content string) error {
+	return nil
+}
+
 func (m *PostModel) Latest() ([]*models.Post, error) {
 	posts := []*models.Post{}
 
@@ -47,6 +55,14 @@ func (m *PostModel) Filter(user_id int, form url.Values, FilterByLiked func(int,
 	return results, nil
 }
 
-func (m *PostModel) FilterByCreated(post_user_id, user_id int, val string) bool {
-	return false
+func (m *PostModel) Created(id int) ([]*models.Posts_Comments, error) {
+	return nil, nil
+}
+
+func (m *PostModel) Reacted(id int, GetReactionsByUser func(int) ([]*models.PostReaction, error)) ([]*models.Posts_Comments, error) {
+	return nil, nil
+}
+
+func (m *PostModel) Commented(id int, GetDistinctCommentsByUser func(int) ([]*models.Comment, error)) ([]*models.Posts_Comments, error) {
+	return nil, nil
 }

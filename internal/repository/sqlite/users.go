@@ -41,13 +41,22 @@ func (m *UserModel) Authenticate(name, password string) (int, error) {
 
 	var id int
 	var hashedPassword []byte
+	var password_db sql.NullString
+
 	row := m.DB.QueryRow("SELECT id, hashed_password FROM users WHERE name=?", name)
-	err := row.Scan(&id, &hashedPassword)
+	err := row.Scan(&id, &password_db)
 	if err == sql.ErrNoRows {
 		return 0, models.ErrInvalidCredentials
 	} else if err != nil {
 		return 0, err
 	}
+
+	if password_db.Valid {
+		hashedPassword = []byte(password_db.String)
+	} else {
+		return 0, models.ErrInvalidCredentials
+	}
+
 	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return 0, models.ErrInvalidCredentials

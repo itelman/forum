@@ -54,22 +54,13 @@ func (m *CommentModel) Delete(id int) error {
 }
 
 func (m *CommentModel) Update(id int, content string) error {
-	var post_id int
-	stmt := `SELECT post_id FROM comments WHERE id = ?`
-	err := m.DB.QueryRow(stmt, id).Scan(&post_id)
-	if err == sql.ErrNoRows {
-		return models.ErrNoRecord
-	} else if err != nil {
-		return err
-	}
-
-	stmt = `UPDATE comments SET content = $1, edited = CURRENT_TIMESTAMP WHERE id = $2`
-	_, err = m.DB.Exec(stmt, content, id)
+	stmt := `UPDATE comments SET content = $1, edited = CURRENT_TIMESTAMP WHERE id = $2`
+	_, err := m.DB.Exec(stmt, content, id)
 	if err != nil {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {

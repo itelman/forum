@@ -29,3 +29,23 @@ func (m *CommentModel) Latest(post_id int) ([]*models.Comment, error) {
 func (m *CommentModel) UpdateReactions(id int, Likes func(int) (int, error), Dislikes func(int) (int, error)) error {
 	return nil
 }
+
+func (m *CommentModel) Delete(id int) error {
+	return nil
+}
+
+func (m *CommentModel) Update(id int, content string) error {
+	return nil
+}
+
+func (m *CommentModel) LatestIgnoreUser(post_id, user_id int) ([]*models.Comment, error) {
+	return nil, nil
+}
+
+func (m *CommentModel) GetDistinctCommentsByUser(user_id int) ([]*models.Comment, error) {
+	return nil, nil
+}
+
+func (m *CommentModel) GetByUserForPost(post_id, user_id int) ([]*models.Comment, error) {
+	return nil, nil
+}

@@ -55,14 +55,12 @@ func (h *Handlers) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	err = h.App.Repository.Comments.Insert(post_id, loggedUser.ID, form.Get("content"))
 	if err != nil {
-		if err != nil {
-			if err == models.ErrNoRecord {
-				h.NotFoundHandler(w, r)
-			} else {
-				h.ServerErrorHandler(w, r, err)
-			}
-			return
+		if err == models.ErrNoRecord {
+			h.NotFoundHandler(w, r)
+		} else {
+			h.ServerErrorHandler(w, r, err)
 		}
+		return
 	}
 
 	sesStore.PutSessionData(sessionID, "flash", "Comment successfully created!")
