@@ -3,6 +3,7 @@ package auth
 import (
 	"forum/internal/repository/models"
 	"net/http"
+	"os"
 )
 
 type contextKey string
@@ -18,4 +19,8 @@ func AuthenticatedUser(r *http.Request) *models.User {
 	}
 
 	return user
+}
+
+func GetHostLink() string {
+	return os.Getenv("HOST_LINK")
 }

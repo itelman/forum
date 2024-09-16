@@ -20,7 +20,7 @@ func GetClientSecret() string {
 	return os.Getenv("GOOGLE_CLIENT_SECRET")
 }
 
-func GetAccessToken(codeOrToken, grant_type string) (string, string, error) {
+func GetAccessToken(codeOrToken, grant_type, redirect_uri string) (string, string, error) {
 	clientID := GetClientID()
 	clientSecret := GetClientSecret()
 
@@ -35,7 +35,7 @@ func GetAccessToken(codeOrToken, grant_type string) (string, string, error) {
 		"client_secret": clientSecret,
 		queryName:       codeOrToken,
 		"grant_type":    grant_type,
-		"redirect_uri":  "https://forum-099y.onrender.com/auth/google/callback",
+		"redirect_uri":  redirect_uri,
 	}
 	requestJSON, err := json.Marshal(requestBodyMap)
 	if err != nil {
@@ -106,7 +106,7 @@ func GetAccessToken(codeOrToken, grant_type string) (string, string, error) {
 	token_type := ghresp.TokenType
 
 	if ghresp.Expires <= 0 {
-		token, token_type, err = GetAccessToken(ghresp.RefreshToken, "refresh_token")
+		token, token_type, err = GetAccessToken(ghresp.RefreshToken, "refresh_token", redirect_uri)
 		if err != nil {
 			return "", "", err
 		}

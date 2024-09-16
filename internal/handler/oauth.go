@@ -47,7 +47,7 @@ func (h *Handlers) LoginGithub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	githubClientID := github.GetClientID()
-	redirectURL := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s", githubClientID, "https://forum-099y.onrender.com/auth/github/callback")
+	redirectURL := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s/auth/github/callback", githubClientID, auth.GetHostLink())
 
 	http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 }
@@ -184,6 +184,14 @@ func (h *Handlers) LoginGoogle(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	GoogleClientId := google.GetClientID()
+	GoogleRedirectURL := fmt.Sprintf("%s/auth/google/callback", auth.GetHostLink())
+
+	scope := url.QueryEscape("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cloud-platform openid")
+	URL := fmt.Sprintf("https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&prompt=select_account", GoogleClientId, GoogleRedirectURL, scope)
+
+	http.Redirect(w, r, URL, http.StatusTemporaryRedirect)
 }
 
 func (h *Handlers) LoginGoogleCallback(w http.ResponseWriter, r *http.Request) {
@@ -219,7 +227,8 @@ func (h *Handlers) LoginGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, tokenType, err := google.GetAccessToken(code, "authorization_code")
+	redirectUri := fmt.Sprintf("%s/auth/google/callback", auth.GetHostLink())
+	accessToken, tokenType, err := google.GetAccessToken(code, "authorization_code", redirectUri)
 	if err != nil {
 		if err == models.ErrBadGateway {
 			sesStore.PutSessionData(sessionID, "flash", "Authorization unsuccessful. Please try again.")
