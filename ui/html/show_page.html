@@ -3,170 +3,188 @@
 {{define "title"}}"{{.Post.Title}}"{{end}}
 
 {{define "body"}}
-{{$td := .}}
-{{with .Post}}
-<div class="post">
-    <div class="metadata">
-        <strong>{{.Title}}</strong>
-        <span>{{.ID}}</span>
-        <p>Author: {{.Username}}</p>
-        <p>Categories: {{range $td.PCRelations}}[{{.}}] {{end}}</p>
+    {{$authUser := .AuthenticatedUser}}
 
-        {{if and ($td.AuthenticatedUser) (eq $td.AuthenticatedUser.ID .UserID)}}
-        <a class="button" href="/post/edit?id={{.ID}}">Edit</a>
-        <a class="button" onclick="confirmPostDel('{{.ID}}')">Remove</a>
-        {{end}}
-    </div>
+    {{with .Post}}
+        <div class="post">
+            <div class="metadata">
+                <strong>{{.Title}}</strong>
+                <span>{{.ID}}</span>
+                <p><b>Author:</b> {{.User.Username}}</p>
+                <p><b>Categories:</b> {{if .Categories}}|{{end}} {{range .Categories}}{{.}} | {{end}}</p>
 
-    <div style="border-top: 1px solid #E4E5E7; border-bottom: 1px solid #E4E5E7;">
-        <pre><code>{{.Content}}</code></pre>
+                {{if and ($authUser) (eq $authUser.ID .User.ID)}}
+                    <a class="button" href="/user/posts/edit?id={{.ID}}">Edit</a>
+                    <a class="button" onclick="confirmPostDel('{{.ID}}')">Remove</a>
+                {{end}}
+            </div>
 
-        {{with $td.Image}}
-        <img src="{{.Path}}" alt="post image"
-            style="max-width: 500px; max-height: 500px; display: block; margin-left: auto; margin-right: auto;">
-        {{end}}
-    </div>
+            <div style="border-top: 1px solid #E4E5E7; border-bottom: 1px solid #E4E5E7;">
+                <pre><code>{{.Content}}</code></pre>
 
-    <div class="metadata">
-        <div class="reaction-container">
-            {{if $td.AuthenticatedUser}}
-            <form action="/post/reaction" method="POST">
-                <input type="hidden" name="post_id" value="{{.ID}}">
-                <input type="hidden" name="is_like" value="1">
+                {{with .Image}}
+                    <img src="{{.Path}}" alt="post image"
+                         style="max-width: 500px; max-height: 500px; display: block; margin-left: auto; margin-right: auto;">
+                {{end}}
+            </div>
 
-                <button class="reaction like">
-                    {{if eq .ReactedByUser 1}}
-                    <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg" alt="Like">
+            <div class="metadata">
+                <div class="reaction-container">
+                    {{if $authUser}}
+                        <form action="/user/posts/react" method="POST">
+                            <input type="hidden" name="post_id" value="{{.ID}}">
+                            <input type="hidden" name="is_like" value="1">
+
+                            <button class="reaction like">
+                                {{if eq .AuthUserReaction 1}}
+                                    <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg"
+                                         alt="Like">
+                                {{else}}
+                                    <img id="post-like-icon-{{.ID}}" class="like-icon"
+                                         src="/static/img/like-svgrepo-com(1).svg"
+                                         alt="Like">
+                                {{end}}
+                            </button>
+
+                        </form>
                     {{else}}
-                    <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
-                        alt="Like">
+                        <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
+                             alt="Like">
                     {{end}}
-                </button>
-            </form>
-            {{else}}
-            <img id="post-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg" alt="Like">
-            {{end}}
-            <span id="like-count-{{.ID}}">{{.Likes}}</span>
 
-            {{if $td.AuthenticatedUser}}
-            <form action="/post/reaction" method="POST">
-                <input type="hidden" name="post_id" value="{{.ID}}">
-                <input type="hidden" name="is_like" value="0">
+                    <span id="like-count-{{.ID}}">{{.Likes}}</span>
 
-                <button class="reaction dislike">
-                    {{if eq .ReactedByUser 0}}
-                    <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-active.svg"
-                        alt="Dislike">
+                    {{if $authUser}}
+                        <form action="/user/posts/react" method="POST">
+                            <input type="hidden" name="post_id" value="{{.ID}}">
+                            <input type="hidden" name="is_like" value="0">
+
+                            <button class="reaction dislike">
+                                {{if eq .AuthUserReaction 0}}
+                                    <img id="post-dislike-icon-{{.ID}}" class="dislike-icon"
+                                         src="/static/img/dislike-active.svg"
+                                         alt="Dislike">
+                                {{else}}
+                                    <img id="post-dislike-icon-{{.ID}}" class="dislike-icon"
+                                         src="/static/img/dislike-svgrepo-com.svg"
+                                         alt="Dislike">
+                                {{end}}
+                            </button>
+
+                        </form>
                     {{else}}
-                    <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
-                        alt="Dislike">
+                        <img id="post-dislike-icon-{{.ID}}" class="dislike-icon"
+                             src="/static/img/dislike-svgrepo-com.svg"
+                             alt="Dislike">
                     {{end}}
-                </button>
-            </form>
-            {{else}}
-            <img id="post-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
-                alt="Dislike">
-            {{end}}
-            <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+
+                    <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+                </div>
+
+                <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
+            </div>
         </div>
+    {{end}}
 
-        <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
-    </div>
-</div>
-{{end}}
+    {{if .AuthenticatedUser}}
+        <div class="comment">
+            <form action="/user/posts/comments/create" method="post" class="form-comment">
+                <input type="hidden" name="post_id" value="{{.Post.ID}}">
 
-{{if .AuthenticatedUser}}
-<div class="comment">
-    <form action="/post/comment" method="post" class="form-comment">
-        <input type="hidden" name="post_id" value="{{.Post.ID}}">
+                <div class="form-element-comment">
+                    <textarea name="content" id="comment-text" cols="30" rows="10" class="textarea-comment"></textarea>
 
-        <div class="form-element-comment">
-            <textarea name="content" id="comment-text" cols="30" rows="10" class="textarea-comment"></textarea>
-            <button class="form-element-button-comments" type="submit">
-                <input type="submit" value="Submit">
-            </button>
-        </div>
-    </form>
-</div>
-{{else}}
-<p class="comment-info">Please sign in or sign up if you want to leave reactions and comments!</p>
-{{end}}
-
-{{if .Comments}}
-{{range .Comments}}
-<div class="comment-posted">
-    <h3 class="comment-posted-username">Author: {{.Username}}</h3>
-    <p class="comment-posted-text">{{.Content}}</p>
-    <div class="comment-posted-metadata">
-        <div class="reaction-container">
-            {{if $td.AuthenticatedUser}}
-            <form action="/comment/reaction" method="POST">
-                <input type="hidden" name="comment_id" value="{{.ID}}">
-                <input type="hidden" name="is_like" value="1">
-
-                <button class="reaction like">
-                    {{if eq .ReactedByUser 1}}
-                    <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-active.svg" alt="Like">
-                    {{else}}
-                    <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg"
-                        alt="Like">
-                    {{end}}
-                </button>
+                    <button class="form-element-button-comments" type="submit">
+                        <input type="submit" value="Submit">
+                    </button>
+                </div>
             </form>
-            {{else}}
-            <img id="comment-like-icon-{{.ID}}" class="like-icon" src="/static/img/like-svgrepo-com(1).svg" alt="Like">
-            {{end}}
-
-            <span id="like-count-{{.ID}}">{{.Likes}}</span>
-
-            {{if $td.AuthenticatedUser}}
-            <form action="/comment/reaction" method="POST">
-                <input type="hidden" name="comment_id" value="{{.ID}}">
-                <input type="hidden" name="is_like" value="0">
-
-                <button class="reaction dislike">
-                    {{if eq .ReactedByUser 0}}
-                    <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-active.svg"
-                        alt="Dislike">
-                    {{else}}
-                    <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon"
-                        src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
-                    {{end}}
-                </button>
-            </form>
-            {{else}}
-            <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon" src="/static/img/dislike-svgrepo-com.svg"
-                alt="Dislike">
-            {{end}}
-
-            <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
         </div>
-        
-        {{if and ($td.AuthenticatedUser) (eq $td.AuthenticatedUser.ID .UserID)}}
-        <a class="button" href="/post/comment/edit?id={{.ID}}">Edit</a>
-        <a class="button" onclick="confirmCommentDel('{{.ID}}')">Remove</a>
+    {{else}}
+        <p class="comment-info">Please sign in or sign up if you want to leave reactions and comments!</p>
+    {{end}}
+
+    {{if .Post.Comments}}
+        {{range .Post.Comments}}
+            <div class="comment-posted">
+                <h3 class="comment-posted-username">Author: {{.User.Username}}</h3>
+                <p class="comment-posted-text">{{.Content}}</p>
+                <div class="comment-posted-metadata">
+                    <div class="reaction-container">
+
+                        {{if $authUser}}
+                            <form action="/user/posts/comments/react" method="POST">
+                                <input type="hidden" name="comment_id" value="{{.ID}}">
+                                <input type="hidden" name="is_like" value="1">
+
+                                <button class="reaction like">
+                                    {{if eq .AuthUserReaction 1}}
+                                        <img id="comment-like-icon-{{.ID}}" class="like-icon"
+                                             src="/static/img/like-active.svg" alt="Like">
+                                    {{else}}
+                                        <img id="comment-like-icon-{{.ID}}" class="like-icon"
+                                             src="/static/img/like-svgrepo-com(1).svg"
+                                             alt="Like">
+                                    {{end}}
+                                </button>
+                            </form>
+                        {{else}}
+                            <img id="comment-like-icon-{{.ID}}" class="like-icon"
+                                 src="/static/img/like-svgrepo-com(1).svg" alt="Like">
+                        {{end}}
+
+                        <span id="like-count-{{.ID}}">{{.Likes}}</span>
+
+                        {{if $authUser}}
+                            <form action="/user/posts/comments/react" method="POST">
+                                <input type="hidden" name="comment_id" value="{{.ID}}">
+                                <input type="hidden" name="is_like" value="0">
+
+                                <button class="reaction dislike">
+                                    {{if eq .AuthUserReaction 0}}
+                                        <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon"
+                                             src="/static/img/dislike-active.svg"
+                                             alt="Dislike">
+                                    {{else}}
+                                        <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon"
+                                             src="/static/img/dislike-svgrepo-com.svg" alt="Dislike">
+                                    {{end}}
+                                </button>
+                            </form>
+                        {{else}}
+                            <img id="comment-dislike-icon-{{.ID}}" class="dislike-icon"
+                                 src="/static/img/dislike-svgrepo-com.svg"
+                                 alt="Dislike">
+                        {{end}}
+
+                        <span id="dislike-count-{{.ID}}">{{.Dislikes}}</span>
+                    </div>
+
+                    {{if and ($authUser) (eq $authUser.ID .User.ID)}}
+                        <a class="button" href="/user/posts/comments/edit?id={{.ID}}">Edit</a>
+                        <a class="button" onclick="confirmCommentDel('{{.ID}}')">Remove</a>
+                    {{end}}
+
+                    <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
+                </div>
+            </div>
         {{end}}
+    {{else}}
+        <p class="comment-info">No Comments Yet!</p>
+    {{end}}
 
-        <time class="comment-posted-time">Created: {{humanDate .Created}}</time>
-    </div>
-</div>
-{{end}}
-{{else}}
-<p class="comment-info">No Comments Yet!</p>
-{{end}}
-
-<script>
-    function confirmPostDel(id) {
-        if (confirm("Are you sure you want to remove this post?")) {
-            window.location.href = `/post/delete?id=${id}`;
+    <script>
+        function confirmPostDel(id) {
+            if (confirm("Are you sure you want to remove this post?")) {
+                window.location.href = `/user/posts/delete?id=${id}`;
+            }
         }
-    }
 
-    function confirmCommentDel(id) {
-        if (confirm("Are you sure you want to remove this comment?")) {
-            window.location.href = `/post/comment/delete?id=${id}`;
+        function confirmCommentDel(id) {
+            if (confirm("Are you sure you want to remove this comment?")) {
+                window.location.href = `/user/posts/comments/delete?id=${id}`;
+            }
         }
-    }
-</script>
+    </script>
 
 {{end}}

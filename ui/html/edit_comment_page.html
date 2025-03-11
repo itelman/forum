@@ -1,0 +1,35 @@
+{{template "base" .}}
+
+{{define "title"}}Edit Comment{{end}}
+
+{{define "body"}}
+    {{$comment := .Comment}}
+    <form action="/user/posts/comments/edit?id={{$comment.ID}}" method="post">
+        {{with .Form}}
+
+            {{with .Errors.Get "generic"}}
+                <div class="error">{{.}}</div>
+            {{end}}
+
+            <div>
+                <label>Author: {{$comment.User.Username}}</label><br>
+                <label>Created: {{humanDate $comment.Created}}</label>
+            </div>
+                
+            <div>
+                <label>Content:</label>
+
+                {{with .Errors.Get "content"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+
+                <textarea name="content">{{.Get "content"}}</textarea>
+            </div>
+
+            <div>
+                <input type="submit" value="Edit comment">
+                <a class="button" href='/posts?id={{$comment.Post.ID}}'>Cancel</a>
+            </div>
+        {{end}}
+    </form>
+{{end}}

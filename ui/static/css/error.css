@@ -1,0 +1,41 @@
+body {
+    background-color: #3f5d81;
+    color: white
+}
+
+.error-page {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.error-page-img {
+    height: 400px;
+}
+
+.error-page-container {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin: auto;
+}
+
+.error-page-h2 {
+    font-size: 64px;
+}
+
+p {
+    font-size: 42px;
+}
+
+.error-page-home {
+    margin-top: 55px;
+    font-size: 32px;
+    text-decoration: none;
+    color: white;
+}
+
+.error-page-home:hover {
+    color: pink;
+    text-decoration: underline;
+}

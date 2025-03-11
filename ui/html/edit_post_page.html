@@ -1,0 +1,45 @@
+{{template "base" .}}
+
+{{define "title"}}Edit Post{{end}}
+
+{{define "body"}}
+    {{$post := .Post}}
+    <form action='/user/posts/edit?id={{$post.ID}}' method="post">
+        {{with .Form}}
+
+            {{with .Errors.Get "generic"}}
+                <div class="error">{{.}}</div>
+            {{end}}
+
+            <div>
+                <label>Author: {{$post.User.Username}}</label><br>
+                <label>Created: {{humanDate $post.Created}}</label>
+            </div>
+
+            <div>
+                <label>Title:</label>
+
+                {{with .Errors.Get "title"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+
+                <input type="text" name="title" value='{{.Get "title"}}'>
+            </div>
+
+            <div>
+                <label>Content:</label>
+
+                {{with .Errors.Get "content"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+                
+                <textarea name="content">{{.Get "content"}}</textarea>
+            </div>
+
+            <div>
+                <input type="submit" value="Edit post">
+                <a class="button" href='/posts?id={{$post.ID}}'>Cancel</a>
+            </div>
+        {{end}}
+    </form>
+{{end}}

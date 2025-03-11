@@ -1,19 +1,19 @@
 {{define "base"}}
-<!doctype html>
-<html lang='en'>
+    <!doctype html>
+    <html lang='en'>
 
-<head>
-    <meta charset='utf-8'>
-    <title>{{template "title" .}} - Forum</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
-</head>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{template "title" .}} - Forum</title>
+        <link rel="stylesheet" href="/static/css/main.css">
+        <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu">
+    </head>
 
-<body>
+    <body>
     <header>
         <h1>
-            <img width="33" height="33" src="/static/img/Facebook_F_icon.svg" alt="logo">
+            <!--<img width="33" height="33" src="/static/img/Facebook_F_icon.svg" alt="logo">-->
             <a href='/'>forum</a>
         </h1>
     </header>
@@ -21,32 +21,30 @@
         <li>
             <a class="menuItem" href='/'>Home</a>
             {{if .AuthenticatedUser}}
-            <a class="menuItem" href="/post/create">Create Post</a>
+                <a class="menuItem" href="/user/posts/create">Create Post</a>
             {{end}}
         </li>
         <li>
             {{if .AuthenticatedUser}}
-            <form class="menuItem" action="/user/logout" method="POST">
-                <!-- Include the CSRF token -->
-                <input type="hidden" name="csrf_token" value='{{.CSRFToken}}'>
-                <button>Log Out ({{.AuthenticatedUser.Name}})</button>
-            </form>
+                <form class="menuItem" action="/user/logout" method="POST">
+                    <button>Log Out ({{.AuthenticatedUser.Username}})</button>
+                </form>
             {{else}}
-            <a class="menuItem" href="/user/signup">Sign Up</a>
-            <a class="menuItem" href="/user/login">Sign In</a>
+                <a class="menuItem" href="/user/signup">Sign Up</a>
+                <a class="menuItem" href="/user/login">Sign In</a>
             {{end}}
         </li>
         {{if .AuthenticatedUser}}
-        <br>
-        <li>
-            <a class="menuItem" href="/user/notifications?filter=1">Notifications</a>
-        </li>
-        <br>
-        <li>
-            <a class="menuItem" href="/user/activity/created">Created Posts</a>
-            <a class="menuItem" href="/user/activity/reacted">Reacted Posts</a>
-            <a class="menuItem" href="/user/activity/commented">Commented Posts</a>
-        </li>
+            <br>
+            <li>
+                <a class="menuItem" href="/user/notifications">Notifications</a>
+            </li>
+            <br>
+            <li>
+                <a class="menuItem" href="/user/activity/created">Created Posts</a>
+                <a class="menuItem" href="/user/activity/reacted">Reacted Posts</a>
+                <a class="menuItem" href="/user/activity/commented">Commented Posts</a>
+            </li>
         {{end}}
     </ul>
     <button class="hamburger">
@@ -56,13 +54,13 @@
     </button>
     <section>
         {{with .Flash}}
-        <div class="flash ">{{.}}</div>
+            <div class="flash ">{{.}}</div>
         {{end}}
         {{template "body" .}}
     </section>
     {{template "footer" .}}
     <script src="/static/js/main.js" type="text/javascript"></script>
-</body>
+    </body>
 
-</html>
+    </html>
 {{end}}

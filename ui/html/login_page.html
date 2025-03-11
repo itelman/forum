@@ -3,34 +3,45 @@
 {{define "title"}}Sign In{{end}}
 
 {{define "body"}}
-{{$td := .}}
-<form action="/user/login" method="POST" novalidate>
-    <!-- Include the CSRF token -->
-    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+    <form action="/user/login" method="POST">
+        {{with .Form}}
 
-    {{with .Form}}
-    {{with .Errors.Get "generic"}}
-    <div class="error">{{.}}</div>
-    {{end}}
-    <div>
-        <label>Username:</label>
-        <input type="email" name="name" value='{{.Get "name"}}'>
-    </div>
-    <div>
-        <label>Password:</label>
-        <input type="password" name="password">
-    </div>
-    <div>
-        <input type="submit" value="Sign In">
-    </div>
+            {{with .Errors.Get "generic"}}
+                <div class="error">{{.}}</div>
+            {{end}}
 
-    <div>
-        <a class="button" href="/auth/google">Sign In with Google</a>
-    </div>
+            <div>
+                <label>Username:</label>
 
-    <div>
-        <a class="button" href="/auth/github">Sign In with Github</a>
-    </div>
-    {{end}}
-</form>
+                {{with .Errors.Get "username"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+
+                <input type="text" name="username" value='{{.Get "username"}}'>
+            </div>
+
+            <div>
+                <label>Password:</label>
+
+                {{with .Errors.Get "password"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+                
+                <input type="password" name="password">
+            </div>
+
+            <div>
+                <input type="submit" value="Sign In">
+            </div>
+
+            <div>
+                <a class="button" href="/user/login/google">Sign In with Google</a>
+            </div>
+
+            <div>
+                <a class="button" href="/user/login/github">Sign In with Github</a>
+            </div>
+
+        {{end}}
+    </form>
 {{end}}

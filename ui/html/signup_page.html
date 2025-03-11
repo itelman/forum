@@ -3,55 +3,53 @@
 {{define "title"}}Sign Up{{end}}
 
 {{define "body"}}
-{{$td := .}}
-<form action="/user/signup" method="POST" novalidate>
-    <!-- Include the CSRF token -->
-    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+    <form action="/user/signup" method="POST" novalidate>
+        {{with .Form}}
 
-    {{with .Form}}
-    {{with .Errors.Get "generic"}}
-    <div class="error">{{.}}</div>
-    {{end}}
+            {{with .Errors.Get "generic"}}
+                <div class="error">{{.}}</div>
+            {{end}}
 
-    <div class="signup-page-attention">
-        <ul>
-            <li>You cannot create more than one account with the same email.</li>
-            <li>Your password should only include 6-10 characters, such as a-z, A-Z, 0-9, "-", ".", "_".</li>
-        </ul>
-    </div>
+            <div class="signup-page-attention">
+                <ul>
+                    <li>You cannot create more than one account with the same email.</li>
+                    <li>Your password should only include 6-20 characters, such as a-z, A-Z, 0-9, "-", ".", "_".</li>
+                </ul>
+            </div>
 
-    <div>
-        <label>Username:</label>
-        {{with .Errors.Get "name"}}
-        <label class="error">{{.}}</label>
+            <div>
+                <label>Username:</label>
+
+                {{with .Errors.Get "username"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+                
+                <input type="text" name="username" value='{{.Get "username"}}'>
+            </div>
+
+            <div>
+                <label>Email:</label>
+
+                {{with .Errors.Get "email"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+
+                <input type="text" name="email" value='{{.Get "email"}}'>
+            </div>
+
+            <div>
+                <label>Password:</label>
+
+                {{with .Errors.Get "password"}}
+                    <label class="error">{{.}}</label>
+                {{end}}
+
+                <input type="password" name="password">
+            </div>
+
+            <div class="">
+                <input type="submit" value="Sign Up">
+            </div>
         {{end}}
-        <input type="text" name="name" value='{{.Get "name"}}'>
-    </div>
-    <div>
-        <label>Email:</label>
-        {{with .Errors.Get "email"}}
-        <label class="error">{{.}}</label>
-        {{end}}
-        <input type="text" name="email" value='{{.Get "email"}}'>
-    </div>
-    <div>
-        <label>Password:</label>
-        {{with .Errors.Get "password"}}
-        <label class="error">{{.}}</label>
-        {{end}}
-        <input type="password" name="password">
-    </div>
-    <div class="">
-        <input type="submit" value="Sign Up">
-    </div>
-
-    <div>
-        <a class="button" href="/auth/google">Sign Up with Google</a>
-    </div>
-
-    <div>
-        <a class="button" href="/auth/github">Sign Up with Github</a>
-    </div>
-    {{end}}
-</form>
+    </form>
 {{end}}

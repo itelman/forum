@@ -1,55 +1,64 @@
 {{template "base" .}}
 {{define "title"}}Home{{end}}
 {{define "body"}}
-<h2>Latest Posts</h2>
+    <h2>Latest Posts</h2>
 
-<form action="/results">
-    <div class="category">
-        <fieldset class="categories-fieldset">
-            <legend>Filters:</legend>
+    <form action="/results" method="post">
 
-            {{range .Categories}}
-            <div class="categories-conatiner-inner">
-                <input type="checkbox" id="{{.ID}}" name="categories" value="{{.ID}}">
-                <label for="{{.ID}}">{{.Name}}</label>
-            </div>
-            {{end}}
+        {{with .Form.Errors.Get "generic"}}
+            <div class="error">{{.}}</div>
+        {{end}}
 
-            {{if .AuthenticatedUser}}
-            <div class="categories-posts">
-                <div>
-                    <input type="checkbox" id="created" name="created" value="1">
-                    <label for="created">created posts</label>
+        <div class="category">
+            <fieldset class="categories-fieldset">
+                <legend>Filters:</legend>
+
+                {{range .Categories}}
+                    <div class="categories-container-inner">
+                        <input type="radio" id="{{.ID}}" name="category_id" value="{{.ID}}">
+                        <label for="{{.ID}}">{{.Name}}</label>
+                    </div>
+                {{end}}
+
+                {{if .AuthenticatedUser}}
+                    <div class="categories-posts">
+                        <div>
+                            <input type="checkbox" id="created" name="created" value="1">
+                            <label for="created">created posts</label>
+                        </div>
+
+                        <div>
+                            <input type="checkbox" id="liked" name="liked" value="1">
+                            <label for="liked">liked posts</label>
+                        </div>
+                    </div>
+                {{end}}
+
+                <div class="signup-page-form-submit">
+                    <input type="submit" value="Search">
                 </div>
-                <div>
-                    <input type="checkbox" id="liked" name="liked" value="1">
-                    <label for="liked">liked posts</label>
-                </div>
-            </div>
-            {{end}}
-            <div class="signup-page-form-submit">
-                <input type="submit" value="Search">
-            </div>
-        </fieldset>
-    </div>
-</form>
+            </fieldset>
+        </div>
+    </form>
 
-{{if .Posts}}
-<table id="post-table">
-    <tr>
-        <th>Title</th>
-        <th>User</th>
-        <th>Created</th>
-    </tr>
-    {{range .Posts}}
-    <tr class="post-tr" >
-        <td><a href='/post?id={{.ID}}'>{{.Title}}</a></td>
-        <td>{{.Username}}</td>
-        <td>{{humanDate .Created}}</td>
-    </tr>
+    {{if .Posts}}
+        <table id="post-table">
+            <tr>
+                <th>Title</th>
+                <th>User</th>
+                <th>Created</th>
+            </tr>
+
+            {{range .Posts}}
+                <tr class="post-tr">
+                    <td><a href='/posts?id={{.ID}}'>{{.Title}}</a></td>
+                    <td>{{.User.Username}}</td>
+                    <td>{{humanDate .Created}}</td>
+                </tr>
+            {{end}}
+        </table>
+    {{else}}
+        <p class="comment-info">No Posts Yet!</p>
     {{end}}
-</table>
-{{else}}
-<p class="comment-info">No Posts Yet!</p>
-{{end}}
+
 {{end}}
