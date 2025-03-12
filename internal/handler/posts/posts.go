@@ -3,29 +3,28 @@ package posts
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/handler"
 	"github.com/itelman/forum/internal/service/categories"
-	"github.com/itelman/forum/internal/service/comments"
 	"github.com/itelman/forum/internal/service/posts"
 	"github.com/itelman/forum/internal/service/posts/domain"
 	"github.com/itelman/forum/pkg/templates"
 	"github.com/itelman/forum/pkg/validator"
-	"net/http"
-	"net/url"
-	"strconv"
 )
 
 type handlers struct {
 	*handler.Handlers
 	posts         posts.Service
-	comments      comments.Service
 	categories    categories.Service
 	postImagesDir string
 }
 
-func NewHandlers(handler *handler.Handlers, posts posts.Service, comments comments.Service, categories categories.Service, dir string) *handlers {
-	return &handlers{handler, posts, comments, categories, dir}
+func NewHandlers(handler *handler.Handlers, posts posts.Service, categories categories.Service, dir string) *handlers {
+	return &handlers{handler, posts, categories, dir}
 }
 
 func (h *handlers) RegisterMux(mux *http.ServeMux) {

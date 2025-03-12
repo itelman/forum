@@ -5,7 +5,7 @@
 - Image uploading feature when creating posts.
 - GitHub and Google OAuth to register and authenticate users.
 - TLS protocol to establish a secure HTTPS connection to the server.
-- Rate limiting and protection from XSS, Clickjacking and CSRF attacks.
+- Rate limiting and protection from XSS and Clickjacking attacks.
 
 ### Objectives
 
@@ -118,7 +118,7 @@ Or
 - Open the repository.
 - Run the following command:
 ```console
-go run main.go
+go run ./api/*
 ```
 - Run the server at:
 http://localhost:8080/

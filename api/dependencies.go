@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+
 	"github.com/itelman/forum/pkg/oauth"
 	"github.com/itelman/forum/pkg/oauth/github"
 	"github.com/itelman/forum/pkg/oauth/google"

@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/itelman/forum/internal/dto"
@@ -9,11 +8,6 @@ import (
 
 type PostsRepository interface {
 	Get(input GetPostInput) (*dto.Post, error)
-	UpdateReactionsCount(tx *sql.Tx, input UpdatePostReactionsCountInput) error
-}
-
-type UpdatePostReactionsCountInput struct {
-	PostID int
 }
 
 type GetPostInput struct {

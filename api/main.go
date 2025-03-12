@@ -3,6 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/itelman/forum/internal/exception"
 	"github.com/itelman/forum/internal/handler"
 	activityHandlers "github.com/itelman/forum/internal/handler/activity"
@@ -29,12 +36,6 @@ import (
 	"github.com/itelman/forum/internal/service/posts"
 	"github.com/itelman/forum/internal/service/users"
 	"github.com/itelman/forum/pkg/templates"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -112,9 +113,9 @@ func main() {
 
 	home.NewHandlers(defaultHandlers, postsSvc, categoriesSvc, filtersSvc).RegisterMux(mux)
 	usersHandlers.NewHandlers(defaultHandlers, usersSvc).RegisterMux(mux)
-	postsHandlers.NewHandlers(defaultHandlers, postsSvc, commentsSvc, categoriesSvc, conf.PostImagesDir).RegisterMux(mux)
-	commentsHandlers.NewHandlers(defaultHandlers, commentsSvc, postsSvc).RegisterMux(mux)
-	postReactionsHandlers.NewHandlers(defaultHandlers, postReactionsSvc, postsSvc).RegisterMux(mux)
+	postsHandlers.NewHandlers(defaultHandlers, postsSvc, categoriesSvc, conf.PostImagesDir).RegisterMux(mux)
+	commentsHandlers.NewHandlers(defaultHandlers, commentsSvc).RegisterMux(mux)
+	postReactionsHandlers.NewHandlers(defaultHandlers, postReactionsSvc).RegisterMux(mux)
 	commentReactionsHandlers.NewHandlers(defaultHandlers, commentReactionsSvc, commentsSvc).RegisterMux(mux)
 	github.NewHandlers(defaultHandlers, oauthSvc, deps.githubAuth).RegisterMux(mux)
 	google.NewHandlers(defaultHandlers, oauthSvc, deps.googleAuth).RegisterMux(mux)

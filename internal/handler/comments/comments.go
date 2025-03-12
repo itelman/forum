@@ -3,34 +3,33 @@ package comments
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/handler"
 	"github.com/itelman/forum/internal/service/comments"
 	"github.com/itelman/forum/internal/service/comments/domain"
-	"github.com/itelman/forum/internal/service/posts"
 	postDomain "github.com/itelman/forum/internal/service/posts/domain"
 	"github.com/itelman/forum/pkg/templates"
 	"github.com/itelman/forum/pkg/validator"
-	"net/http"
-	"net/url"
-	"strconv"
 )
 
 type handlers struct {
 	*handler.Handlers
 	comments comments.Service
-	posts    posts.Service
 }
 
-func NewHandlers(handler *handler.Handlers, comments comments.Service, posts posts.Service) *handlers {
-	return &handlers{handler, comments, posts}
+func NewHandlers(handler *handler.Handlers, comments comments.Service) *handlers {
+	return &handlers{handler, comments}
 }
 
 func (h *handlers) RegisterMux(mux *http.ServeMux) {
 	routes := []dto.Route{
-		{"/user/posts/comments/create", dto.PostMethod, h.create},
-		{"/user/posts/comments/edit", dto.GetPostMethods, h.editForm},
-		{"/user/posts/comments/delete", dto.GetMethod, h.delete},
+		{Path: "/user/posts/comments/create", Methods: dto.PostMethod, Handler: h.create},
+		{Path: "/user/posts/comments/edit", Methods: dto.GetPostMethods, Handler: h.editForm},
+		{Path: "/user/posts/comments/delete", Methods: dto.GetMethod, Handler: h.delete},
 	}
 
 	for _, route := range routes {
@@ -47,17 +46,14 @@ func (h *handlers) create(w http.ResponseWriter, r *http.Request) {
 
 	input := req.(*comments.CreateCommentInput)
 
-	_, err = h.posts.GetPost(&posts.GetPostInput{ID: input.PostID})
-	if errors.Is(err, postDomain.ErrPostNotFound) {
-		h.Exceptions.ErrNotFoundHandler(w, r)
-		return
-	}
-
 	if err = h.comments.CreateComment(input); errors.Is(err, domain.ErrCommentsBadRequest) {
 		if err := h.SesManager.UpdateSessionFlash(r, dto.FlashCommentEnter); err != nil {
 			h.Exceptions.ErrInternalServerHandler(w, r, err)
 			return
 		}
+	} else if errors.Is(err, postDomain.ErrPostNotFound) {
+		h.Exceptions.ErrNotFoundHandler(w, r)
+		return
 	} else if err != nil {
 		h.Exceptions.ErrInternalServerHandler(w, r, err)
 		return

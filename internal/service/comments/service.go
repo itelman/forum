@@ -2,6 +2,7 @@ package comments
 
 import (
 	"database/sql"
+
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/service/comments/adapters"
 	"github.com/itelman/forum/internal/service/comments/domain"
@@ -16,6 +17,7 @@ type Service interface {
 
 type service struct {
 	comments domain.CommentsRepository
+	posts    domain.PostsRepository
 }
 
 func NewService(opts ...Option) *service {
@@ -32,11 +34,16 @@ type Option func(*service)
 func WithSqlite(db *sql.DB) Option {
 	return func(s *service) {
 		s.comments = adapters.NewCommentsRepositorySqlite(db)
+		s.posts = adapters.NewPostsRepositorySqlite(db)
 	}
 }
 
 func (s *service) CreateComment(input *CreateCommentInput) error {
 	if err := input.validate(); err != nil {
+		return err
+	}
+
+	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); err != nil {
 		return err
 	}
 

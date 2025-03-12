@@ -2,6 +2,7 @@ package activity
 
 import (
 	"database/sql"
+
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/service/activity/adapters"
 	"github.com/itelman/forum/internal/service/activity/domain"
@@ -16,7 +17,6 @@ type Service interface {
 type service struct {
 	posts    domain.PostsRepository
 	comments domain.CommentsRepository
-	db       *sql.DB
 }
 
 func NewService(opts ...Option) *service {
@@ -34,7 +34,6 @@ func WithSqlite(db *sql.DB) Option {
 	return func(s *service) {
 		s.posts = adapters.NewPostsRepositorySqlite(db)
 		s.comments = adapters.NewCommentsRepositorySqlite(db)
-		s.db = db
 	}
 }
 

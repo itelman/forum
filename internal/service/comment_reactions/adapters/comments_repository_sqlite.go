@@ -2,6 +2,9 @@ package adapters
 
 import (
 	"database/sql"
+	"errors"
+
+	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/service/comment_reactions/domain"
 )
 
@@ -11,6 +14,33 @@ type CommentsRepositorySqlite struct {
 
 func NewCommentsRepositorySqlite(db *sql.DB) *CommentsRepositorySqlite {
 	return &CommentsRepositorySqlite{db}
+}
+
+func (r *CommentsRepositorySqlite) Get(input domain.GetCommentInput) (*dto.Comment, error) {
+	query := "SELECT comments.id, comments.post_id, users.id, users.username, comments.content, comments.likes, comments.dislikes, comments.created FROM comments INNER JOIN users ON comments.user_id = users.id WHERE comments.id = ?"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	comment := &dto.Comment{User: &dto.User{}}
+	if err := stmt.QueryRow(input.ID).Scan(
+		&comment.ID,
+		&comment.PostID,
+		&comment.User.ID,
+		&comment.User.Username,
+		&comment.Content,
+		&comment.Likes,
+		&comment.Dislikes,
+		&comment.Created,
+	); errors.Is(err, sql.ErrNoRows) {
+		return nil, domain.ErrCommentNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return comment, nil
 }
 
 func (r *CommentsRepositorySqlite) UpdateReactionsCount(tx *sql.Tx, input domain.UpdateCommentReactionsCountInput) error {

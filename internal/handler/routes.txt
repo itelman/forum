@@ -1,11 +1,4 @@
-package handler
-
-/*
-func GetRoutes(mux *http.ServeMux, dynMid middleware.DynamicMiddleware) {
-	userRoutes := []Route{
-		{"/user/activity/created", GetMethod},
-		{"/user/activity/reacted", GetMethod},
-		{"/user/activity/commented", GetMethod},
+userRoutes := []Route{
 		{"/user/request-mod", PostMethod},
 	}
 
@@ -31,5 +24,3 @@ func GetRoutes(mux *http.ServeMux, dynMid middleware.DynamicMiddleware) {
 			{"/user/admin/posts/delete", GetMethod},
 			{"/user/admin/posts/comments/delete", GetMethod},
 		}
-}
-*/

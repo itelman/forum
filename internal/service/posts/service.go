@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/itelman/forum/internal/dto"
-	"github.com/itelman/forum/internal/service/posts/adapters"
-	"github.com/itelman/forum/internal/service/posts/domain"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/itelman/forum/internal/dto"
+	"github.com/itelman/forum/internal/service/posts/adapters"
+	"github.com/itelman/forum/internal/service/posts/domain"
 )
 
 type Service interface {
@@ -183,6 +184,10 @@ func (s *service) GetAllLatestPosts() (*GetAllPostsResponse, error) {
 
 func (s *service) UpdatePost(input *UpdatePostInput) error {
 	if err := input.validate(); err != nil {
+		return err
+	}
+
+	if _, err := s.GetPost(&GetPostInput{ID: input.ID}); err != nil {
 		return err
 	}
 

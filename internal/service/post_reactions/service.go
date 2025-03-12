@@ -3,6 +3,7 @@ package post_reactions
 import (
 	"database/sql"
 	"errors"
+
 	"github.com/itelman/forum/internal/service/post_reactions/adapters"
 	"github.com/itelman/forum/internal/service/post_reactions/domain"
 )
@@ -38,6 +39,10 @@ func WithSqlite(db *sql.DB) Option {
 
 func (s *service) CreatePostReaction(input *CreatePostReactionInput) error {
 	makeInsertion := true
+
+	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); err != nil {
+		return err
+	}
 
 	reaction, err := s.postReactions.Get(domain.GetPostReactionInput{
 		PostID: input.PostID,

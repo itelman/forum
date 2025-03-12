@@ -3,6 +3,7 @@ package comment_reactions
 import (
 	"database/sql"
 	"errors"
+
 	"github.com/itelman/forum/internal/service/comment_reactions/adapters"
 	"github.com/itelman/forum/internal/service/comment_reactions/domain"
 )

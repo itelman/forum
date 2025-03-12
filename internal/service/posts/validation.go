@@ -2,13 +2,14 @@ package posts
 
 import (
 	"fmt"
-	"github.com/itelman/forum/internal/dto"
-	"github.com/itelman/forum/internal/service/posts/domain"
-	"github.com/itelman/forum/pkg/validator"
 	"mime/multipart"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/itelman/forum/internal/dto"
+	"github.com/itelman/forum/internal/service/posts/domain"
+	"github.com/itelman/forum/pkg/validator"
 )
 
 const (
@@ -66,6 +67,11 @@ func (i *CreatePostInput) validateContent() {
 }
 
 func (i *CreatePostInput) validateCategoriesID() []int {
+	if len(i.CategoriesID) == 0 {
+		i.Errors.Add("categories", "Please provide valid categories")
+		return nil
+	}
+
 	result := make([]int, 0)
 	for _, idStr := range i.CategoriesID {
 		id, err := strconv.Atoi(idStr)
