@@ -35,19 +35,20 @@ type SessionManager interface {
 	UpdateSessionLastRequest(r *http.Request) error
 	UpdateSessionFlash(r *http.Request, val string) error
 	PopSessionFlash(r *http.Request) (string, error)
-	DeleteAllUserSessions(userId int)
+	DeleteActiveUserSession(userId int)
+	BlockSession(r *http.Request) error
 }
 
 type sessionManager struct {
 	store       map[string]session
-	activeUsers map[int]map[string]interface{}
+	activeUsers map[int]string
 	mutex       sync.RWMutex
 }
 
 func NewSessionManager() *sessionManager {
 	return &sessionManager{
 		store:       make(map[string]session),
-		activeUsers: make(map[int]map[string]interface{}),
+		activeUsers: make(map[int]string),
 	}
 }
 
@@ -63,11 +64,7 @@ func (s *sessionManager) CreateSession(userId int) (string, error) {
 	defer s.mutex.Unlock()
 
 	s.store[sessionId] = session{UserId: userId, LastRequest: time.Now(), Status: "active"}
-
-	if len(s.activeUsers[userId]) == 0 {
-		s.activeUsers[userId] = make(map[string]interface{})
-	}
-	s.activeUsers[userId][sessionId] = nil
+	s.activeUsers[userId] = sessionId
 
 	return sessionId, nil
 }
@@ -106,7 +103,7 @@ func (s *sessionManager) DeleteCurrentSession(r *http.Request) error {
 	defer s.mutex.Unlock()
 
 	delete(s.store, sessionID)
-	delete(s.activeUsers[uid.(int)], sessionID)
+	delete(s.activeUsers, uid.(int))
 
 	return nil
 }
@@ -191,10 +188,25 @@ func (s *sessionManager) PopSessionFlash(r *http.Request) (string, error) {
 	return flash.(string), nil
 }
 
-func (s *sessionManager) DeleteAllUserSessions(userId int) {
-	for sessionId, _ := range s.activeUsers[userId] {
-		delete(s.store, sessionId)
+func (s *sessionManager) DeleteActiveUserSession(userId int) {
+	s.mutex.RLock()
+	sessionId, exists := s.activeUsers[userId]
+	s.mutex.RUnlock()
+	if !exists {
+		return
 	}
 
-	s.activeUsers[userId] = make(map[string]interface{})
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	delete(s.store, sessionId)
+	delete(s.activeUsers, userId)
+}
+
+func (s *sessionManager) BlockSession(r *http.Request) error {
+	if err := s.AddOrUpdateSessionData(r, session{Status: "blocked", BlockTimestamp: time.Now()}); err != nil {
+		return err
+	}
+
+	return nil
 }

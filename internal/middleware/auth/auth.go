@@ -14,7 +14,7 @@ import (
 
 var (
 	sesTimeLimit = 24 * time.Hour
-	sesBlockTime = 3 * time.Hour
+	sesBlockTime = time.Hour
 	maxRequests  = 10
 )
 
@@ -32,18 +32,16 @@ type middleware struct {
 	sesManager sesm.SessionManager
 	exceptions exception.Exceptions
 
-	limiters     map[int]chan time.Time
-	blockedUsers map[int]time.Time
-	mutex        sync.RWMutex
+	limiters map[string]chan time.Time
+	mutex    sync.RWMutex
 }
 
 func NewMiddleware(users users.Service, sesManager sesm.SessionManager, exceptions exception.Exceptions) *middleware {
 	return &middleware{
-		users:        users,
-		sesManager:   sesManager,
-		exceptions:   exceptions,
-		limiters:     make(map[int]chan time.Time),
-		blockedUsers: make(map[int]time.Time),
+		users:      users,
+		sesManager: sesManager,
+		exceptions: exceptions,
+		limiters:   make(map[string]chan time.Time),
 	}
 }
 
@@ -81,9 +79,8 @@ func (m *middleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		val, err := m.userRateLimiting(r)
-		if errors.Is(err, ErrSessionExpired) {
-			m.sesManager.DeleteAllUserSessions(val)
+		if err := m.sessionRateLimiting(r); errors.Is(err, ErrSessionExpired) {
+			m.sesManager.DeleteCurrentSession(r)
 			http.SetCookie(w, dto.DeleteCookie(sesm.SessionId))
 			next.ServeHTTP(w, r)
 			return
@@ -117,9 +114,9 @@ func (m *middleware) checkSessionActivity(r *http.Request) error {
 	return nil
 }
 
-func (m *middleware) setRateLimiter(userId int) {
+func (m *middleware) setRateLimiter(sessionId string) {
 	m.mutex.RLock()
-	limiter, exists := m.limiters[userId]
+	limiter, exists := m.limiters[sessionId]
 	m.mutex.RUnlock()
 
 	if !exists {
@@ -140,52 +137,61 @@ func (m *middleware) setRateLimiter(userId int) {
 		}()
 
 		m.mutex.Lock()
-		m.limiters[userId] = limiter
+		m.limiters[sessionId] = limiter
 		m.mutex.Unlock()
 	}
 }
 
-func (m *middleware) userRateLimiting(r *http.Request) (int, error) {
-	uidVal, err := m.sesManager.GetSessionData(r, sesm.UserId)
+func (m *middleware) sessionRateLimiting(r *http.Request) error {
+	sessionId, err := m.sesManager.CurrentSessionID(r)
 	if err != nil {
-		return -1, err
+		return err
 	}
-	userId := uidVal.(int)
 
-	lrVal, err := m.sesManager.GetSessionData(r, sesm.LastRequest)
+	status, err := m.sesManager.GetSessionData(r, sesm.Status)
 	if err != nil {
-		return -1, err
+		return err
 	}
-	lastRequest := lrVal.(time.Time)
 
-	m.mutex.RLock()
-	blockTimestamp, exists := m.blockedUsers[userId]
-	m.mutex.RUnlock()
+	if status.(string) == "blocked" {
+		lrVal, err := m.sesManager.GetSessionData(r, sesm.LastRequest)
+		if err != nil {
+			return err
+		}
+		lastRequest := lrVal.(time.Time)
 
-	if exists {
+		btVal, err := m.sesManager.GetSessionData(r, sesm.BlockTimestamp)
+		if err != nil {
+			return err
+		}
+		blockTimestamp := btVal.(time.Time)
+
 		if lastRequest.Sub(blockTimestamp) >= sesBlockTime {
 			m.mutex.Lock()
-			delete(m.blockedUsers, userId)
-			delete(m.limiters, userId)
+			//delete(m.blockedSessions, sessionId)
+			delete(m.limiters, sessionId)
 			m.mutex.Unlock()
 
-			return userId, ErrSessionExpired
+			return ErrSessionExpired
 		} else {
-			return -1, ErrTooManyRequests
+			return ErrTooManyRequests
 		}
 	}
 
-	m.setRateLimiter(userId)
+	m.setRateLimiter(sessionId)
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	select {
-	case <-m.limiters[userId]:
-		return -1, nil
+	case <-m.limiters[sessionId]:
+		return nil
 	default:
-		m.blockedUsers[userId] = time.Now()
-		return -1, ErrTooManyRequests
+		if err := m.sesManager.BlockSession(r); err != nil {
+			return err
+		}
+
+		return ErrTooManyRequests
 	}
 
 }

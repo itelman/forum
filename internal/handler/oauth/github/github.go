@@ -52,7 +52,7 @@ func (h *handlers) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//h.SesManager.DeleteActiveUserSession(resp.UserID)
+	h.SesManager.DeleteActiveUserSession(resp.UserID)
 	//http.SetCookie(w, dto.DeleteCookie(sesm.SessionId))
 
 	sessionID, err := h.SesManager.CreateSession(resp.UserID)
