@@ -2,6 +2,7 @@ package comments
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/service/comments/adapters"
@@ -11,7 +12,7 @@ import (
 type Service interface {
 	CreateComment(input *CreateCommentInput) error
 	GetComment(input *GetCommentInput) (*GetCommentResponse, error)
-	UpdateComment(input *UpdateCommentInput) error
+	UpdateComment(input *UpdateCommentInput, comment *dto.Comment) error
 	DeleteComment(input *DeleteCommentInput) error
 }
 
@@ -43,7 +44,9 @@ func (s *service) CreateComment(input *CreateCommentInput) error {
 		return err
 	}
 
-	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); err != nil {
+	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); errors.Is(err, domain.ErrPostNotFound) {
+		return domain.ErrCommentsBadRequest
+	} else if err != nil {
 		return err
 	}
 
@@ -77,8 +80,8 @@ type GetAllCommentsForPostResponse struct {
 	Comments []*dto.Comment
 }
 
-func (s *service) UpdateComment(input *UpdateCommentInput) error {
-	if err := input.validate(); err != nil {
+func (s *service) UpdateComment(input *UpdateCommentInput, comment *dto.Comment) error {
+	if err := input.validate(comment); err != nil {
 		return err
 	}
 

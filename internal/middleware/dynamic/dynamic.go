@@ -3,7 +3,7 @@ package dynamic
 import (
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/exception"
-	"github.com/itelman/forum/internal/middleware/auth"
+	authMiddleware "github.com/itelman/forum/internal/handler/users/middleware"
 	"github.com/itelman/forum/pkg/sesm"
 	"net/http"
 )
@@ -18,10 +18,10 @@ type DynamicMiddleware interface {
 type middleware struct {
 	sesManager sesm.SessionManager
 	exceptions exception.Exceptions
-	authMid    auth.AuthMiddleware
+	authMid    authMiddleware.AuthMiddleware
 }
 
-func NewMiddleware(authMid auth.AuthMiddleware, sesManager sesm.SessionManager, exceptions exception.Exceptions) *middleware {
+func NewMiddleware(authMid authMiddleware.AuthMiddleware, sesManager sesm.SessionManager, exceptions exception.Exceptions) *middleware {
 	return &middleware{
 		authMid:    authMid,
 		sesManager: sesManager,

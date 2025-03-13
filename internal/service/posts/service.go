@@ -18,7 +18,7 @@ type Service interface {
 	CreatePost(input *CreatePostInput, dir string) (*CreatePostResponse, error)
 	GetPost(input *GetPostInput) (*GetPostResponse, error)
 	GetAllLatestPosts() (*GetAllPostsResponse, error)
-	UpdatePost(input *UpdatePostInput) error
+	UpdatePost(input *UpdatePostInput, post *dto.Post) error
 	DeletePost(input *DeletePostInput, dir string) error
 }
 
@@ -45,8 +45,8 @@ func WithSqlite(db *sql.DB) Option {
 	return func(s *service) {
 		s.posts = adapters.NewPostsRepositorySqlite(db)
 		s.postCategories = adapters.NewPostCategoriesRepositorySqlite(db)
-		s.comments = adapters.NewCommentsRepositorySqlite(db)
 		s.images = adapters.NewImagesRepositorySqlite(db)
+		s.comments = adapters.NewCommentsRepositorySqlite(db)
 		s.db = db
 	}
 }
@@ -182,12 +182,8 @@ func (s *service) GetAllLatestPosts() (*GetAllPostsResponse, error) {
 	return &GetAllPostsResponse{posts}, nil
 }
 
-func (s *service) UpdatePost(input *UpdatePostInput) error {
-	if err := input.validate(); err != nil {
-		return err
-	}
-
-	if _, err := s.GetPost(&GetPostInput{ID: input.ID}); err != nil {
+func (s *service) UpdatePost(input *UpdatePostInput, post *dto.Post) error {
+	if err := input.validate(post); err != nil {
 		return err
 	}
 
@@ -203,10 +199,6 @@ func (s *service) UpdatePost(input *UpdatePostInput) error {
 }
 
 func (s *service) DeletePost(input *DeletePostInput, dir string) error {
-	if _, err := s.GetPost(&GetPostInput{ID: input.ID}); err != nil {
-		return err
-	}
-
 	if err := os.RemoveAll(filepath.Join(dir, strconv.Itoa(input.ID))); err != nil {
 		return err
 	}

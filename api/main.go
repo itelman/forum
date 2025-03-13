@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	authMiddleware "github.com/itelman/forum/internal/handler/users/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +23,6 @@ import (
 	commentReactionsHandlers "github.com/itelman/forum/internal/handler/reactions/comment_reactions"
 	postReactionsHandlers "github.com/itelman/forum/internal/handler/reactions/post_reactions"
 	usersHandlers "github.com/itelman/forum/internal/handler/users"
-	"github.com/itelman/forum/internal/middleware/auth"
 	"github.com/itelman/forum/internal/middleware/dynamic"
 	"github.com/itelman/forum/internal/middleware/standard"
 	"github.com/itelman/forum/internal/service/activity"
@@ -69,8 +69,8 @@ func main() {
 		users.WithSqlite(deps.sqlite),
 	)
 
-	authMiddleware := auth.NewMiddleware(usersSvc, deps.sesManager, exceptionHandlers)
-	dynamicMiddleware := dynamic.NewMiddleware(authMiddleware, deps.sesManager, exceptionHandlers)
+	authMid := authMiddleware.NewMiddleware(usersSvc, deps.sesManager, exceptionHandlers)
+	dynamicMiddleware := dynamic.NewMiddleware(authMid, deps.sesManager, exceptionHandlers)
 	defaultHandlers := handler.NewHandlers(dynamicMiddleware, deps.sesManager, exceptionHandlers, tmplRender)
 
 	postsSvc := posts.NewService(
@@ -116,7 +116,7 @@ func main() {
 	postsHandlers.NewHandlers(defaultHandlers, postsSvc, categoriesSvc, conf.PostImagesDir).RegisterMux(mux)
 	commentsHandlers.NewHandlers(defaultHandlers, commentsSvc).RegisterMux(mux)
 	postReactionsHandlers.NewHandlers(defaultHandlers, postReactionsSvc).RegisterMux(mux)
-	commentReactionsHandlers.NewHandlers(defaultHandlers, commentReactionsSvc, commentsSvc).RegisterMux(mux)
+	commentReactionsHandlers.NewHandlers(defaultHandlers, commentReactionsSvc).RegisterMux(mux)
 	github.NewHandlers(defaultHandlers, oauthSvc, deps.githubAuth).RegisterMux(mux)
 	google.NewHandlers(defaultHandlers, oauthSvc, deps.googleAuth).RegisterMux(mux)
 	notificationsHandlers.NewHandlers(defaultHandlers, notificationsSvc).RegisterMux(mux)

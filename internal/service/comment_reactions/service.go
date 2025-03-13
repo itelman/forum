@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	CreateCommentReaction(input *CreateCommentReactionInput) error
+	CreateCommentReaction(input *CreateCommentReactionInput) (*CreateCommentReactionResponse, error)
 }
 
 type service struct {
@@ -37,20 +37,31 @@ func WithSqlite(db *sql.DB) Option {
 	}
 }
 
-func (s *service) CreateCommentReaction(input *CreateCommentReactionInput) error {
+type CreateCommentReactionResponse struct {
+	PostID int
+}
+
+func (s *service) CreateCommentReaction(input *CreateCommentReactionInput) (*CreateCommentReactionResponse, error) {
 	makeInsertion := true
+
+	comment, err := s.comments.Get(domain.GetCommentInput{ID: input.CommentID})
+	if errors.Is(err, domain.ErrCommentNotFound) {
+		return nil, domain.ErrCommentReactionsBadRequest
+	} else if err != nil {
+		return nil, err
+	}
 
 	reaction, err := s.commentReactions.Get(domain.GetCommentReactionInput{
 		CommentID: input.CommentID,
 		UserID:    input.UserID,
 	})
 	if err != nil && !errors.Is(err, domain.ErrCommentReactionNotFound) {
-		return err
+		return nil, err
 	}
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if reaction != nil {
@@ -58,7 +69,7 @@ func (s *service) CreateCommentReaction(input *CreateCommentReactionInput) error
 			ID: reaction.ID,
 		}); err != nil {
 			tx.Rollback()
-			return err
+			return nil, err
 		}
 
 		if reaction.IsLike == input.IsLike {
@@ -73,18 +84,18 @@ func (s *service) CreateCommentReaction(input *CreateCommentReactionInput) error
 			IsLike:    input.IsLike,
 		}); err != nil {
 			tx.Rollback()
-			return err
+			return nil, err
 		}
 	}
 
 	if err := s.comments.UpdateReactionsCount(tx, domain.UpdateCommentReactionsCountInput{CommentID: input.CommentID}); err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &CreateCommentReactionResponse{PostID: comment.PostID}, nil
 }

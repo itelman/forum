@@ -3,27 +3,24 @@ package comment_reactions
 import (
 	"errors"
 	"fmt"
+	"github.com/itelman/forum/internal/service/comment_reactions/domain"
 	"net/http"
 
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/handler"
 	"github.com/itelman/forum/internal/service/comment_reactions"
-	"github.com/itelman/forum/internal/service/comments"
-	"github.com/itelman/forum/internal/service/comments/domain"
 )
 
 type commentReactionHandlers struct {
 	*handler.Handlers
 	commentReactions comment_reactions.Service
-	comments         comments.Service
 }
 
 func NewHandlers(
 	handler *handler.Handlers,
 	commentReactions comment_reactions.Service,
-	comments comments.Service,
 ) *commentReactionHandlers {
-	return &commentReactionHandlers{handler, commentReactions, comments}
+	return &commentReactionHandlers{handler, commentReactions}
 }
 
 func (h *commentReactionHandlers) RegisterMux(mux *http.ServeMux) {
@@ -38,24 +35,14 @@ func (h *commentReactionHandlers) create(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	input := req.(*comment_reactions.CreateCommentReactionInput)
-
-	commResp, err := h.comments.GetComment(&comments.GetCommentInput{ID: input.CommentID})
-	if errors.Is(err, domain.ErrCommentNotFound) {
-		h.Exceptions.ErrNotFoundHandler(w, r)
+	resp, err := h.commentReactions.CreateCommentReaction(req.(*comment_reactions.CreateCommentReactionInput))
+	if errors.Is(err, domain.ErrCommentReactionsBadRequest) {
+		h.Exceptions.ErrBadRequestHandler(w, r)
 		return
 	} else if err != nil {
 		h.Exceptions.ErrInternalServerHandler(w, r, err)
 		return
 	}
 
-	if err := h.commentReactions.CreateCommentReaction(input); errors.Is(err, domain.ErrCommentNotFound) {
-		h.Exceptions.ErrNotFoundHandler(w, r)
-		return
-	} else if err != nil {
-		h.Exceptions.ErrInternalServerHandler(w, r, err)
-		return
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("/posts?id=%d", commResp.Comment.PostID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/posts?id=%d", resp.PostID), http.StatusSeeOther)
 }

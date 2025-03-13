@@ -114,11 +114,10 @@ type UpdatePostInput struct {
 	ID      int
 	Title   string
 	Content string
-	Post    *dto.Post
 	Errors  validator.Errors
 }
 
-func (i *UpdatePostInput) validate() error {
+func (i *UpdatePostInput) validate(post *dto.Post) error {
 	i.validateTitle()
 	i.validateContent()
 
@@ -126,7 +125,7 @@ func (i *UpdatePostInput) validate() error {
 		return domain.ErrPostsBadRequest
 	}
 
-	if i.Title == i.Post.Title && i.Content == i.Post.Content {
+	if i.Title == post.Title && i.Content == post.Content {
 		i.Errors.Add("generic", validator.ErrInputUnchanged)
 		return domain.ErrPostsBadRequest
 	}

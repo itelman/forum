@@ -26,6 +26,17 @@ func DecodeCreateComment(r *http.Request) (interface{}, error) {
 	}, nil
 }
 
+func DecodeGetComment(r *http.Request) (interface{}, error) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		return nil, domain.ErrCommentsBadRequest
+	}
+
+	return &GetCommentInput{
+		ID: id,
+	}, nil
+}
+
 func DecodeUpdateComment(r *http.Request) (interface{}, error) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {

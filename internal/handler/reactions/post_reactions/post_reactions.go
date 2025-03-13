@@ -3,11 +3,11 @@ package post_reactions
 import (
 	"errors"
 	"fmt"
+	"github.com/itelman/forum/internal/service/post_reactions/domain"
 	"net/http"
 
 	"github.com/itelman/forum/internal/dto"
 	"github.com/itelman/forum/internal/handler"
-	"github.com/itelman/forum/internal/service/comments/domain"
 	"github.com/itelman/forum/internal/service/post_reactions"
 )
 
@@ -37,8 +37,8 @@ func (h *postReactionHandlers) create(w http.ResponseWriter, r *http.Request) {
 
 	input := req.(*post_reactions.CreatePostReactionInput)
 
-	if err := h.postReactions.CreatePostReaction(input); errors.Is(err, domain.ErrCommentNotFound) {
-		h.Exceptions.ErrNotFoundHandler(w, r)
+	if err := h.postReactions.CreatePostReaction(input); errors.Is(err, domain.ErrPostReactionsBadRequest) {
+		h.Exceptions.ErrBadRequestHandler(w, r)
 		return
 	} else if err != nil {
 		h.Exceptions.ErrInternalServerHandler(w, r, err)

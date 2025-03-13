@@ -40,7 +40,9 @@ func WithSqlite(db *sql.DB) Option {
 func (s *service) CreatePostReaction(input *CreatePostReactionInput) error {
 	makeInsertion := true
 
-	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); err != nil {
+	if _, err := s.posts.Get(domain.GetPostInput{ID: input.PostID}); errors.Is(err, domain.ErrPostNotFound) {
+		return domain.ErrPostReactionsBadRequest
+	} else if err != nil {
 		return err
 	}
 

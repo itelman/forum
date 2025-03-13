@@ -42,12 +42,11 @@ type GetCommentInput struct {
 type UpdateCommentInput struct {
 	ID      int
 	Content string
-	Comment *dto.Comment
 	Errors  validator.Errors
 }
 
-func (i *UpdateCommentInput) validate() error {
-	i.validateContent()
+func (i *UpdateCommentInput) validate(comment *dto.Comment) error {
+	i.validateContent(comment)
 
 	if len(i.Errors) != 0 {
 		return domain.ErrCommentsBadRequest
@@ -56,7 +55,7 @@ func (i *UpdateCommentInput) validate() error {
 	return nil
 }
 
-func (i *UpdateCommentInput) validateContent() {
+func (i *UpdateCommentInput) validateContent(comment *dto.Comment) {
 	if len(strings.TrimSpace(i.Content)) == 0 {
 		i.Errors.Add("content", validator.ErrInputRequired("content"))
 		return
@@ -67,7 +66,7 @@ func (i *UpdateCommentInput) validateContent() {
 		return
 	}
 
-	if i.Content == i.Comment.Content {
+	if i.Content == comment.Content {
 		i.Errors.Add("content", validator.ErrInputUnchanged)
 	}
 }
